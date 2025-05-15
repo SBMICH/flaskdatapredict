@@ -1,3 +1,7 @@
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # Deshabilita el uso de la GPU
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"  # Reducir mensajes de log de TensorFlow
+
 import matplotlib
 matplotlib.use("Agg")  # Usar un backend no interactivo para evitar problemas con la GUI
 
@@ -28,6 +32,11 @@ ann_model = load_model("models/ann_model.keras")
 with open("models/fcm_model.pkl", "rb") as f:
     fcm_adj_matrix = pickle.load(f)
 
+# Ajustar la matriz de adyacencia FCM para 30 nodos
+if fcm_adj_matrix.shape[0] == 31:
+    fcm_adj_matrix = fcm_adj_matrix[:30, :30]
+    print("Matriz FCM ajustada a 30x30 nodos.")
+
 # Inicializar el escalador estándar
 scaler = StandardScaler()
 
@@ -36,22 +45,14 @@ def sigmoid(x):
     x = np.clip(x, -500, 500)  # Limitar valores extremos para evitar desbordamientos
     return 1 / (1 + np.exp(-x))
 
-# Función para realizar predicciones con FCM (nodo 31)
+# Función para realizar predicciones con FCM
 def predict_fcm(adj_matrix, data):
-    """
-    Predice el valor del nodo 31 basándose en las características de entrada (primeros 30 nodos).
-    Args:
-        adj_matrix (np.ndarray): Matriz de adyacencia (31x31).
-        data (np.ndarray): Características de entrada (30 nodos).
-    Returns:
-        float: Valor predicho para el nodo 31.
-    """
-    # Extraer los pesos hacia el nodo 31 (última fila, primeros 30 elementos)
-    weights_to_node_31 = adj_matrix[30, :30]
-    
-    # Calcular el valor del nodo 31 usando los primeros 30 nodos
-    node_31_value = sigmoid(np.dot(weights_to_node_31, data))
-    return np.round(node_31_value)  # Retornar el valor redondeado (0 o 1)
+    if adj_matrix.shape[0] != data.shape[0]:
+        raise ValueError("El número de datos ingresados no coincide con los nodos del modelo FCM.")
+    concepts = data
+    for _ in range(10):  # Iteraciones de actualización
+        concepts = sigmoid(np.dot(adj_matrix, concepts))
+    return np.round(concepts[0])  # Retornar el primer concepto redondeado (valor binario)
 
 # Ruta para el index.html
 @app.route("/")
@@ -81,10 +82,10 @@ def predict():
         prediction = ann_model.predict(scaled_data).flatten()[0]  # Usar flatten para obtener un escalar
         prediction = 1 if prediction >= 0.5 else 0  # Convertir probabilidad a clase (0 o 1)
     elif model_type == "fcm":
-        # Para el modelo FCM, no se utiliza el escalador
-        if fcm_adj_matrix.shape[0] - 1 != data.shape[0]:
-            return jsonify({"error": "El número de características no coincide con los nodos del modelo FCM."}), 400
-        prediction = predict_fcm(fcm_adj_matrix, data)  # Predice el nodo 31
+        # Validar el número de características
+        if fcm_adj_matrix.shape[0] != len(data):
+            return jsonify({"error": f"El modelo FCM requiere exactamente {fcm_adj_matrix.shape[0]} características, pero se ingresaron {len(data)}."}), 400
+        prediction = predict_fcm(fcm_adj_matrix, data)  # Ya retorna un escalar
     else:
         return jsonify({"error": "Modelo no reconocido."}), 400
 
@@ -101,8 +102,9 @@ def predict():
 @app.route("/batch_predict", methods=["POST"])
 def batch_predict():
     try:
-        # Capturar el modelo seleccionado
-        model_type = request.form.get("batch_model", "logistic")
+        # Capturar el modelo seleccionado desde el formulario
+        model_type = request.form.get("batch_model", "logistic")  # Modelo por defecto: logistic
+        print(f"Modelo Seleccionado: {model_type}")
 
         # Verificar si se subió un archivo
         if "file" not in request.files:
@@ -124,15 +126,25 @@ def batch_predict():
         if data.isnull().values.any():
             return jsonify({"error": "El archivo contiene valores nulos o incompletos."}), 400
 
-        # Verificar que el archivo tenga al menos 31 columnas
-        if data.shape[1] < 31:
-            return jsonify({"error": "El archivo debe contener al menos 31 columnas (30 características y 1 etiqueta)."}), 400
+        # Validar que el archivo tenga suficientes columnas
+        if data.shape[1] < 2:
+            return jsonify({"error": "El archivo debe contener al menos una columna de características y una columna de etiquetas."}), 400
+
+        # Determinar columnas requeridas para FCM
+        if model_type == "fcm":
+            required_columns = [f"C{i}" for i in range(1, fcm_adj_matrix.shape[0] + 1)]  # Nodos = columnas requeridas
+            if not all(col in data.columns for col in required_columns):
+                return jsonify({"error": f"El archivo no contiene todas las columnas requeridas para FCM. Se esperaban las columnas: {', '.join(required_columns)}."}), 400
 
         # Separar características y etiquetas
-        X = data.iloc[:, :30].values  # Primeras 30 columnas como características
-        y_true = data.iloc[:, 30].values  # Última columna como etiqueta verdadera
+        X = data.iloc[:, :-1].values  # Todas las columnas excepto la última
+        y_true = data.iloc[:, -1].values  # Última columna como etiqueta verdadera
 
-        # Seleccionar el modelo
+        # Validar dimensiones para FCM
+        if model_type == "fcm" and X.shape[1] != fcm_adj_matrix.shape[0]:
+            return jsonify({"error": f"El modelo FCM requiere exactamente {fcm_adj_matrix.shape[0]} características, pero el archivo contiene {X.shape[1]} columnas."}), 400
+
+        # Seleccionar el modelo que se desea utilizar
         if model_type == "logistic":
             model_to_use = logistic_model
         elif model_type == "svm":
@@ -140,7 +152,7 @@ def batch_predict():
         elif model_type == "ann":
             model_to_use = ann_model
         elif model_type == "fcm":
-            model_to_use = fcm_adj_matrix
+            model_to_use = fcm_adj_matrix  # Para FCM, utilizamos la matriz de adyacencia directamente
         else:
             return jsonify({"error": f"Modelo '{model_type}' no reconocido."}), 400
 
@@ -186,7 +198,7 @@ def batch_predict():
         })
     except Exception as e:
         return jsonify({"error": f"Error procesando el archivo: {str(e)}"}), 500
-
+     
 # Ejecutar la aplicación
 if __name__ == "__main__":
     app.run(debug=True)

@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Predicción de Peso Fetal</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1><i class="fas fa-baby"></i> Sistema de Predicción de Peso Fetal</h1>
+            <p>Herramienta avanzada para profesionales médicos</p>
+        </div>
+        <nav class="main-nav">
+            <div class="container">
+                <ul>
+                    <li><a href="#inicio" class="active"><i class="fas fa-home"></i> Inicio</a></li>
+                    <li><a href="#informacion"><i class="fas fa-info-circle"></i> Información</a></li>
+                    <li><a href="#modelos"><i class="fas fa-brain"></i> Modelos</a></li>
+                    <li><a href="#guia"><i class="fas fa-book"></i> Guía de Uso</a></li>
+                    <li><a href="#faq"><i class="fas fa-question-circle"></i> FAQ</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <div class="hero-section">
+        <div class="container">
+            <div class="hero-content">
+                <h2>Predicción Avanzada de Peso Fetal</h2>
+                <p>Utilice algoritmos de inteligencia artificial para obtener predicciones precisas basadas en parámetros clínicos</p>
+                <a href="#prediccion" class="btn hero-btn"><i class="fas fa-arrow-down"></i> Comenzar Predicción</a>
+            </div>
+        </div>
+    </div>
+
+    <section id="inicio" class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2><i class="fas fa-star"></i> Bienvenido al Sistema de Predicción</h2>
+                <p>Una herramienta diseñada para profesionales de la salud</p>
+            </div>
+            
+            <div class="features">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3>Precisión Avanzada</h3>
+                    <p>Algoritmos entrenados con miles de casos clínicos para ofrecer predicciones de alta precisión.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h3>Múltiples Modelos</h3>
+                    <p>Elija entre diferentes algoritmos de aprendizaje automático según sus necesidades específicas.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-file-csv"></i>
+                    </div>
+                    <h3>Análisis por Lotes</h3>
+                    <p>Procese múltiples casos simultáneamente mediante la carga de archivos CSV o Excel.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-lock"></i>
+                    </div>
+                    <h3>Seguro y Privado</h3>
+                    <p>Todos los datos se procesan localmente, garantizando la privacidad y seguridad de la información.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="informacion" class="section bg-light">
+        <div class="container">
+            <div class="section-header">
+                <h2><i class="fas fa-info-circle"></i> Información sobre Predicción de Peso Fetal</h2>
+                <p>Comprendiendo la importancia de la predicción precisa</p>
+            </div>
+            
+            <div class="info-content">
+                <div class="info-text">
+                    <h3>¿Por qué es importante la predicción del peso fetal?</h3>
+                    <p>La estimación precisa del peso fetal es crucial para la toma de decisiones clínicas durante el embarazo. Permite identificar casos de restricción del crecimiento intrauterino (RCIU) o macrosomía fetal, condiciones que pueden requerir intervenciones específicas para garantizar la salud tanto de la madre como del feto.</p>
+                    
+                    <h3>Factores que influyen en el peso fetal</h3>
+                    <p>Múltiples factores afectan el desarrollo y crecimiento fetal, incluyendo:</p>
+                    <ul>
+                        <li>Edad gestacional</li>
+                        <li>Condiciones maternas (hipertensión, diabetes, etc.)</li>
+                        <li>Factores genéticos</li>
+                        <li>Estado nutricional materno</li>
+                        <li>Complicaciones placentarias</li>
+                        <li>Factores ambientales</li>
+                    </ul>
+                    
+                    <h3>Beneficios de la predicción asistida por IA</h3>
+                    <p>Los algoritmos de inteligencia artificial pueden integrar múltiples variables clínicas para ofrecer predicciones más precisas que los métodos tradicionales, ayudando a los profesionales médicos a:</p>
+                    <ul>
+                        <li>Planificar intervenciones obstétricas</li>
+                        <li>Reducir complicaciones durante el parto</li>
+                        <li>Optimizar el manejo de embarazos de alto riesgo</li>
+                        <li>Mejorar los resultados perinatales</li>
+                    </ul>
+                </div>
+                
+                <div class="info-image">
+                    <img src="{{ url_for('static', filename='img/fetal-growth.png') }}" alt="Crecimiento fetal" onerror="this.src='https://via.placeholder.com/400x300?text=Crecimiento+Fetal'">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="modelos" class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2><i class="fas fa-brain"></i> Modelos de Predicción</h2>
+                <p>Conozca los algoritmos utilizados en nuestro sistema</p>
+            </div>
+            
+            <div class="models-container">
+                <div class="model-card">
+                    <div class="model-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3>Regresión Logística</h3>
+                    <p>Un modelo estadístico que estima la probabilidad de un resultado binario basado en una o más variables predictoras.</p>
+                    <div class="model-details">
+                        <h4>Características:</h4>
+                        <ul>
+                            <li>Alta interpretabilidad</li>
+                            <li>Eficiente computacionalmente</li>
+                            <li>Ideal para relaciones lineales</li>
+                            <li>Proporciona probabilidades</li>
+                        </ul>
+                        <h4>Mejor para:</h4>
+                        <p>Casos donde la interpretabilidad es prioritaria y las relaciones entre variables son relativamente simples.</p>
+                    </div>
+                </div>
+                
+                <div class="model-card">
+                    <div class="model-icon">
+                        <i class="fas fa-network-wired"></i>
+                    </div>
+                    <h3>Red Neuronal Artificial (ANN)</h3>
+                    <p>Modelo inspirado en el cerebro humano que puede capturar relaciones complejas y no lineales entre variables.</p>
+                    <div class="model-details">
+                        <h4>Características:</h4>
+                        <ul>
+                            <li>Alta capacidad predictiva</li>
+                            <li>Captura patrones complejos</li>
+                            <li>Adaptable a diversos tipos de datos</li>
+                            <li>Requiere más datos para entrenamiento</li>
+                        </ul>
+                        <h4>Mejor para:</h4>
+                        <p>Situaciones con relaciones complejas entre variables y cuando se dispone de grandes conjuntos de datos.</p>
+                    </div>
+                </div>
+                
+                <div class="model-card">
+                    <div class="model-icon">
+                        <i class="fas fa-project-diagram"></i>
+                    </div>
+                    <h3>Mapas Cognitivos Difusos (FCM)</h3>
+                    <p>Combinación de redes neuronales y lógica difusa que modela relaciones causales entre conceptos.</p>
+                    <div class="model-details">
+                        <h4>Características:</h4>
+                        <ul>
+                            <li>Incorpora conocimiento experto</li>
+                            <li>Maneja incertidumbre</li>
+                            <li>Modela relaciones causales</li>
+                            <li>Buena interpretabilidad</li>
+                        </ul>
+                        <h4>Mejor para:</h4>
+                        <p>Casos donde el conocimiento experto es valioso y las relaciones causales son importantes.</p>
+                    </div>
+                </div>
+                
+                <div class="model-card">
+                    <div class="model-icon">
+                        <i class="fas fa-vector-square"></i>
+                    </div>
+                    <h3>Máquinas de Apoyo Vectorial (SVM)</h3>
+                    <p>Algoritmo que encuentra el hiperplano óptimo para separar clases en un espacio de características.</p>
+                    <div class="model-details">
+                        <h4>Características:</h4>
+                        <ul>
+                            <li>Efectivo en espacios de alta dimensión</li>
+                            <li>Robusto contra el sobreajuste</li>
+                            <li>Versátil mediante diferentes kernels</li>
+                            <li>Bueno con conjuntos de datos pequeños</li>
+                        </ul>
+                        <h4>Mejor para:</h4>
+                        <p>Situaciones con muchas variables y cuando se busca un buen equilibrio entre precisión y generalización.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="model-comparison">
+                <h3>Comparación de Rendimiento</h3>
+                <div class="comparison-chart">
+                    <img src="{{ url_for('static', filename='img/model-comparison.png') }}" alt="Comparación de modelos" onerror="this.src='https://via.placeholder.com/800x400?text=Comparación+de+Modelos'">
+                </div>
+                <p class="chart-caption">Gráfico comparativo de precisión, sensibilidad y especificidad entre los diferentes modelos utilizados en el sistema.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="guia" class="section bg-light">
+        <div class="container">
+            <div class="section-header">
+                <h2><i class="fas fa-book"></i> Guía de Uso</h2>
+                <p>Aprenda a utilizar el sistema de manera efectiva</p>
+            </div>
+            
+            <div class="guide-steps">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <h3>Seleccione el Tipo de Predicción</h3>
+                    <p>Elija entre predicción individual para un solo caso o predicción por lotes para múltiples pacientes.</p>
+                    <img src="{{ url_for('static', filename='img/step1.png') }}" alt="Paso 1" onerror="this.src='https://via.placeholder.com/300x200?text=Paso+1'">
+                </div>
+                
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <h3>Complete los Datos Requeridos</h3>
+                    <p>Ingrese todos los parámetros clínicos solicitados. Asegúrese de que los valores estén dentro de los rangos normales.</p>
+                    <img src="{{ url_for('static', filename='img/step2.png') }}" alt="Paso 2" onerror="this.src='https://via.placeholder.com/300x200?text=Paso+2'">
+                </div>
+                
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <h3>Seleccione el Modelo</h3>
+                    <p>Elija el algoritmo de predicción que mejor se adapte a sus necesidades específicas.</p>
+                    <img src="{{ url_for('static', filename='img/step3.png') }}" alt="Paso 3" onerror="this.src='https://via.placeholder.com/300x200?text=Paso+3'">
+                </div>
+                
+                <div class="step-card">
+                    <div class="step-number">4</div>
+                    <h3>Ejecute la Predicción</h3>
+                    <p>Haga clic en el botón "Predecir" y espere a que el sistema procese los datos ingresados.</p>
+                    <img src="{{ url_for('static', filename='img/step4.png') }}" alt="Paso 4" onerror="this.src='https://via.placeholder.com/300x200?text=Paso+4'">
+                </div>
+                
+                <div class="step-card">
+                    <div class="step-number">5</div>
+                    <h3>Interprete los Resultados</h3>
+                    <p>Analice los resultados obtenidos, incluyendo la predicción y, cuando esté disponible, la probabilidad asociada.</p>
+                    <img src="{{ url_for('static', filename='img/step5.png') }}" alt="Paso 5" onerror="this.src='https://via.placeholder.com/300x200?text=Paso+5'">
+                </div>
+            </div>
+            
+            <div class="guide-tips">
+                <h3><i class="fas fa-lightbulb"></i> Consejos para Mejores Resultados</h3>
+                <ul>
+                    <li><strong>Precisión en los datos:</strong> Asegúrese de ingresar valores precisos para obtener predicciones confiables.</li>
+                    <li><strong>Selección de modelo:</strong> Para casos complejos, considere utilizar ANN o SVM. Para casos más simples o cuando la interpretabilidad es importante, la Regresión Logística puede ser más adecuada.</li>
+                    <li><strong>Análisis por lotes:</strong> Asegúrese de que su archivo CSV o Excel tenga el formato correcto, con una columna para cada parámetro y la última columna para la etiqueta verdadera (si está disponible).</li>
+                    <li><strong>Interpretación:</strong> Recuerde que las predicciones son herramientas de apoyo y deben complementarse con el juicio clínico profesional.</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <section id="prediccion" class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2><i class="fas fa-calculator"></i> Herramienta de Predicción</h2>
+                <p>Utilice nuestros modelos para realizar predicciones precisas</p>
+            </div>
+            
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="individual">Predicción Individual</button>
+                <button class="tab-btn" data-tab="batch">Predicción por Lote</button>
+            </div>
+
+            <div class="tab-content active" id="individual-tab">
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-user-md"></i> Predicción Individual</h2>
+                        <p>Complete todos los campos para obtener una predicción precisa</p>
+                    </div>
+                    <div class="card-body">
+                        <form action="/predict" method="post" id="individual-form">
+                            <div class="form-sections">
+                                <!-- Sección 1: Información Básica -->
+                                <div class="form-section">
+                                    <h3>Información Básica</h3>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="C1">Edad (años):</label>
+                                            <input type="number" name="C1" id="C1" step="1" min="0" required>
+                                            <small class="form-help">Edad de la paciente en años completos.</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="C2">Índice de Masa Corporal (BMI):</label>
+                                            <input type="number" name="C2" id="C2" step="0.1" min="0" required>
+                                            <small class="form-help">BMI = peso (kg) / altura² (m²).</small>
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="C3">Edad Gestacional al Parto (semanas):</label>
+                                            <input type="number" name="C3" id="C3" step="1" min="0" required>
+                                            <small class="form-help">Semanas completas de gestación al momento del parto.</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="C4">Gravidez:</label>
+                                            <input type="number" name="C4" id="C4" step="1" min="0" required>
+                                            <small class="form-help">Número total de embarazos, incluyendo el actual.</small>
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="C5">Paridad:</label>
+                                            <input type="number" name="C5" id="C5" step="1" min="0" required>
+                                            <small class="form-help">Número de partos previos.</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Sección 2: Síntomas Iniciales -->
+                                <div class="form-section">
+                                    <h3>Síntomas Iniciales</h3>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="C6">Síntomas Iniciales (IOS):</label>
+                                            <select name="C6" id="C6" required>
+                                                <option value="">-- Seleccionar --</option>
+                                                <option value="0">Edema</option>
+                                                <option value="1">Hipertensión</option>
+                                                <option value="2">FGR</option>
+                                            </select>
+                                            <small class="form-help">Primer síntoma observado en la paciente.</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="C7">Edad Gestacional de Inicio de IOS (semanas):</label>
+                                            <input type="number" name="C7" id="C7" step="1" min="0" required>
+                                            <small class="form-help">Semana gestacional en que apareció el primer síntoma.</small>
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="C8">Intervalo desde el Inicio de IOS al Parto (días):</label>
+                                            <input type="number" name="C8" id="C8" step="1" min="0" required>
+                                            <small class="form-help">Días transcurridos desde la aparición del primer síntoma hasta el parto.</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Resto de secciones igual que antes -->
+                                <!-- Sección 3: Hipertensión y Edema -->
+                                <div class="form-section">
+                                    <h3>Hipertensión y Edema</h3>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="C9">Edad Gestacional de Inicio de Hipertensión (semanas):</label>
+                                            <input type="number" name="C9" id="C9" step="1" min="0" required>
+                                            <small class="form-help">Semana gestacional en que se detectó hipertensión.</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="C10">Intervalo desde el Inicio de Hipertensión al Parto (días):</label>
+                                            <input type="number" name="C10" id="C10" step="1" min="0" required>
+                                            <small class="form-help">Días transcurridos desde la detección de hipertensión hasta el parto.</small>
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="C11">Edad Gestacional de Inicio de Edema (semanas):</label>
+                                            <input type="number" name="C11" id="C11" step="1" min="0" required>
+                                            <small class="form-help">Semana gestacional en que se detectó edema.</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="C12">Intervalo desde el Inicio de Edema al Parto (días):</label>
+                                            <input type="number" name="C12" id="C12" step="1" min="0" required>
+                                            <small class="form-help">Días transcurridos desde la detección de edema hasta el parto.</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Sección 4: Proteinuria -->
+                                <div class="form-section">
+                                    <h3>Proteinuria</h3>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="C13">Edad Gestacional de Inicio de Proteinuria (semanas):</label>
+                                            <input type="number" name="C13" id="C13" step="1" min="0" required>
+                                            <small class="form-help">Semana gestacional en que se detectó proteinuria.</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="C14">Intervalo desde el Inicio de Proteinuria al Parto (días):</label>
+                                            <input type="number" name="C14" id="C14" step="1" min="0" required>
+                                            <small class="form-help">Días transcurridos desde la detección de proteinuria hasta el parto.</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Sección 5: Tratamiento -->
+                                <div class="form-section">
+                                    <h3>Tratamiento</h3>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="C15">Tratamiento Expectante:</label>
+                                            <select name="C15" id="C15" required>
+                                                <option value="">-- Seleccionar --</option>
+                                                <option value="0">No</option>
+                                                <option value="1">Sí</option>
+                                            </select>
+                                            <small class="form-help">Indica si se aplicó tratamiento expectante.</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="C16">Terapia Antihipertensiva Antes de Hospitalización:</label>
+                                            <select name="C16" id="C16" required>
+                                                <option value="">-- Seleccionar --</option>
+                                                <option value="0">No</option>
+                                                <option value="1">Sí</option>
+                                            </select>
+                                            <small class="form-help">Indica si se aplicó terapia antihipertensiva antes de la hospitalización.</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Sección 6: Historia Clínica -->
+                                <div class="form-section">
+                                    <h3>Historia Clínica</h3>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="C17">Historia Clínica Pasada:</label>
+                                            <select name="C17" id="C17" required>
+                                                <option value="">-- Seleccionar --</option>
+                                                <option value="0">No</option>
+                                                <option value="1">Hipertensión</option>
+                                                <option value="2">PCOS</option>
+                                            </select>
+                                            <small class="form-help">Condiciones médicas previas relevantes.</small>
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="C18">Presión Sistólica Máxima:</label>
+                                            <input type="number" name="C18" id="C18" step="1" min="0" required>
+                                            <small class="form-help">Valor máximo de presión sistólica registrado (mmHg).</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="C19">Presión Diastólica Máxima:</label>
+                                            <input type="number" name="C19" id="C19" step="1" min="0" required>
+                                            <small class="form-help">Valor máximo de presión diastólica registrado (mmHg).</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Sección 7: Parto -->
+                                <div class="form-section">
+                                    <h3>Parto</h3>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="C20">Razones para el Parto:</label>
+                                            <select name="C20" id="C20" required>
+                                                <option value="">-- Seleccionar --</option>
+                                                <option value="0">Síndrome HELLP</option>
+                                                <option value="1">Distress Fetal</option>
+                                                <option value="2">Disfunción Orgánica</option>
+                                                <option value="3">Hipertensión Incontrolada</option>
+                                                <option value="4">Edema</option>
+                                                <option value="5">FGR</option>
+                                            </select>
+                                            <small class="form-help">Principal razón médica para realizar el parto.</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="C21">Modo de Parto:</label>
+                                            <select name="C21" id="C21" required>
+                                                <option value="">-- Seleccionar --</option>
+                                                <option value="0">Cesárea (CS)</option>
+                                                <option value="1">Odinopoeia</option>
+                                            </select>
+                                            <small class="form-help">Método utilizado para el parto.</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Sección 8: Valores Clínicos -->
+                                <div class="form-section">
+                                    <h3>Valores Clínicos</h3>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="C22">Valor Máximo BNP:</label>
+                                            <input type="number" name="C22" id="C22" step="0.1" min="0" required>
+                                            <small class="form-help">Péptido natriurético cerebral (pg/mL).</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="C23">Valores Máximos de Creatinina:</label>
+                                            <input type="number" name="C23" id="C23" step="0.1" min="0" required>
+                                            <small class="form-help">Nivel máximo de creatinina (mg/dL).</small>
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="C24">Valores Máximos de Ácido Úrico:</label>
+                                            <input type="number" name="C24" id="C24" step="0.1" min="0" required>
+                                            <small class="form-help">Nivel máximo de ácido úrico (mg/dL).</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="C25">Valores Máximos de Proteinuria:</label>
+                                            <input type="number" name="C25" id="C25" step="0.1" min="0" required>
+                                            <small class="form-help">Nivel máximo de proteinuria (g/24h).</small>
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="C26">Valores Máximos de Proteína Total:</label>
+                                            <input type="number" name="C26" id="C26" step="0.1" min="0" required>
+                                            <small class="form-help">Nivel máximo de proteína total (g/dL).</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="C27">Valores Máximos de Albúmina:</label>
+                                            <input type="number" name="C27" id="C27" step="0.1" min="0" required>
+                                            <small class="form-help">Nivel máximo de albúmina (g/dL).</small>
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="C28">Valores Máximos de ALT:</label>
+                                            <input type="number" name="C28" id="C28" step="0.1" min="0" required>
+                                            <small class="form-help">Nivel máximo de ALT (U/L).</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="C29">Valores Máximos de AST:</label>
+                                            <input type="number" name="C29" id="C29" step="0.1" min="0" required>
+                                            <small class="form-help">Nivel máximo de AST (U/L).</small>
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="C30">Valores Máximos de Plaquetas:</label>
+                                            <input type="number" name="C30" id="C30" step="1" min="0" required>
+                                            <small class="form-help">Recuento máximo de plaquetas (×10³/μL).</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Sección 9: Modelo -->
+                                <div class="form-section">
+                                    <h3>Selección de Modelo</h3>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="model_type">Seleccionar Modelo:</label>
+                                            <select name="model_type" id="model_type" required>
+                                                <option value="">-- Seleccionar --</option>
+                                                <option value="logistic">Regresión Logística</option>
+                                                <option value="ann">Red Neuronal Artificial (ANN)</option>
+                                                <option value="fcm">Mapas Cognitivos Difusos (FCM)</option>
+                                                <option value="svm">Máquinas de Apoyo Vectorial (SVM)</option>
+                                            </select>
+                                            <small class="form-help">Algoritmo a utilizar para la predicción.</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn primary"><i class="fas fa-calculator"></i> Predecir</button>
+                                <button type="reset" class="btn secondary"><i class="fas fa-undo"></i> Reiniciar</button>
+                            </div>
+                        </form>
+
+                        <div class="result-container">
+                            <div id="result" class="result-box"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="batch-tab">
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-table"></i> Predicción por Lote</h2>
+                        <p>Suba un archivo CSV o Excel con múltiples pacientes para análisis en lote</p>
+                    </div>
+                    <div class="card-body">
+                        <form action="/batch_predict" method="post" enctype="multipart/form-data" id="batch-prediction-form">
+                            <div class="form-section">
+                                <div class="form-row">
+                                    <div class="form-group file-upload">
+                                        <label for="file"><i class="fas fa-file-upload"></i> Subir archivo CSV o Excel:</label>
+                                        <input type="file" name="file" id="file" accept=".csv,.xlsx" required>
+                                        <div class="file-info">Ningún archivo seleccionado</div>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="batch_model">Seleccionar Modelo:</label>
+                                        <select name="batch_model" id="batch_model" required>
+                                            <option value="">-- Seleccionar --</option>
+                                            <option value="logistic">Regresión Logística</option>
+                                            <option value="ann">Red Neuronal Artificial (ANN)</option>
+                                            <option value="fcm">Mapas Cognitivos Difusos (FCM)</option>
+                                            <option value="svm">Máquinas de Apoyo Vectorial (SVM)</option>
+                                        </select>
+                                        <small class="form-help">Por favor, seleccione un modelo antes de enviar el formulario.</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="batch-template">
+                                <h4><i class="fas fa-file-csv"></i> Formato del Archivo</h4>
+                                <p>Su archivo debe contener las siguientes columnas en el orden indicado:</p>
+                                <div class="template-table">
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th>C1</th>
+                                                <th>C2</th>
+                                                <th>...</th>
+                                                <th>C30</th>
+                                                <th>Etiqueta (opcional)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>Edad</td>
+                                                <td>BMI</td>
+                                                <td>...</td>
+                                                <td>Plaquetas</td>
+                                                <td>0 o 1</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn primary"><i class="fas fa-cogs"></i> Procesar Lote</button>
+                            </div>
+                        </form>
+
+                        <div class="result-container">
+                            <div id="batch-result" class="result-box"></div>
+                            <div id="batch-graph" class="graph-container"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="faq" class="section bg-light">
+        <div class="container">
+            <div class="section-header">
+                <h2><i class="fas fa-question-circle"></i> Preguntas Frecuentes</h2>
+                <p>Respuestas a las dudas más comunes sobre el sistema</p>
+            </div>
+            
+            <div class="faq-container">
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3><i class="fas fa-question"></i> ¿Qué precisión tienen los modelos de predicción?</h3>
+                        <span class="faq-toggle"><i class="fas fa-chevron-down"></i></span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>La precisión varía según el modelo utilizado y la calidad de los datos ingresados. En general, nuestros modelos han demostrado una precisión entre el 85% y el 95% en conjuntos de datos de validación. La Red Neuronal Artificial (ANN) tiende a ofrecer la mayor precisión, mientras que la Regresión Logística proporciona resultados más interpretables.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3><i class="fas fa-question"></i> ¿Cómo debo interpretar los resultados?</h3>
+                        <span class="faq-toggle"><i class="fas fa-chevron-down"></i></span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Los resultados incluyen una predicción binaria (Verdadero/Falso) y, en la mayoría de los modelos, una probabilidad asociada. Esta probabilidad indica la confianza del modelo en su predicción. Es importante considerar estos resultados como una herramienta de apoyo a la decisión clínica, no como un reemplazo del juicio profesional.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3><i class="fas fa-question"></i> ¿Qué formato debe tener mi archivo para predicción por lotes?</h3>
+                        <span class="faq-toggle"><i class="fas fa-chevron-down"></i></span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Su archivo debe ser CSV o Excel (.xlsx) con una columna para cada parámetro (C1 a C30) en el mismo orden que aparecen en el formulario individual. Opcionalmente, puede incluir una columna final con las etiquetas verdaderas (0 o 1) para evaluar el rendimiento del modelo. Puede descargar una plantilla desde la sección de predicción por lotes.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3><i class="fas fa-question"></i> ¿Qué modelo debo elegir para mi caso específico?</h3>
+                        <span class="faq-toggle"><i class="fas fa-chevron-down"></i></span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>La elección del modelo depende de sus necesidades específicas:</p>
+                        <ul>
+                            <li><strong>Regresión Logística:</strong> Ideal cuando la interpretabilidad es importante y las relaciones entre variables son relativamente simples.</li>
+                            <li><strong>Red Neuronal Artificial (ANN):</strong> Ofrece la mayor precisión, especialmente en casos complejos con muchas variables interrelacionadas.</li>
+                            <li><strong>Mapas Cognitivos Difusos (FCM):</strong> Útil cuando se dispone de conocimiento experto sobre las relaciones causales entre variables.</li>
+                            <li><strong>Máquinas de Apoyo Vectorial (SVM):</strong> Buen equilibrio entre precisión y generalización, especialmente efectivo con conjuntos de datos pequeños.</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3><i class="fas fa-question"></i> ¿Los datos ingresados se almacenan o comparten?</h3>
+                        <span class="faq-toggle"><i class="fas fa-chevron-down"></i></span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>No. Todos los datos se procesan localmente y no se almacenan ni comparten con terceros. Una vez que cierra la aplicación o actualiza la página, los datos ingresados se eliminan de la memoria. Esto garantiza la privacidad y confidencialidad de la información médica.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta-section">
+        <div class="container">
+            <div class="cta-content">
+                <h2>¿Necesita ayuda adicional?</h2>
+                <p>Nuestro equipo está disponible para resolver sus dudas y proporcionar soporte técnico.</p>
+                <a href="#contact" class="btn cta-btn"><i class="fas fa-envelope"></i> Contactar Soporte</a>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3><i class="fas fa-baby"></i> Sistema de Predicción de Peso Fetal</h3>
+                    <p>Herramienta avanzada para profesionales médicos que utiliza inteligencia artificial para predecir el peso fetal con alta precisión.</p>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Enlaces Rápidos</h3>
+                    <ul class="footer-links">
+                        <li><a href="#inicio">Inicio</a></li>
+                        <li><a href="#informacion">Información</a></li>
+                        <li><a href="#modelos">Modelos</a></li>
+                        <li><a href="#guia">Guía de Uso</a></li>
+                        <li><a href="#prediccion">Predicción</a></li>
+                        <li><a href="#faq">FAQ</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section" id="contact">
+                    <h3>Contacto</h3>
+                    <p><i class="fas fa-envelope"></i> soporte@prediccionfetal.org</p>
+                    <p><i class="fas fa-phone"></i> +34 900 123 456</p>
+                    <div class="social-icons">
+                        <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="social-icon"><i class="fab fa-facebook"></i></a>
+                        <a href="#" class="social-icon"><i class="fab fa-linkedin"></i></a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2025 Sistema de Predicción de Peso Fetal | Desarrollado para profesionales médicos</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

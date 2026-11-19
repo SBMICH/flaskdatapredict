@@ -1,0 +1,23 @@
+{
+  "n_train": 78,
+  "n_test": 34,
+  "baseline_accuracy": 0.5,
+  "logistic": {
+    "accuracy": 0.7647,
+    "f1": 0.75,
+    "cv_accuracy": 0.755
+  },
+  "svm": {
+    "accuracy": 0.8529,
+    "f1": 0.8649,
+    "cv_accuracy": 0.8183
+  },
+  "ann": {
+    "accuracy": 0.8529,
+    "f1": 0.8276
+  },
+  "fcm": {
+    "accuracy": 0.5,
+    "f1": 0.6667
+  }
+}

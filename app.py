@@ -1,204 +1,144 @@
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # Deshabilita el uso de la GPU
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"  # Reducir mensajes de log de TensorFlow
 
 import matplotlib
-matplotlib.use("Agg")  # Usar un backend no interactivo para evitar problemas con la GUI
+matplotlib.use("Agg")  # Backend sin interfaz gráfica
 
-from flask import Flask, render_template, request, jsonify
+import base64
+import io
+
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import pickle
-from tensorflow.keras.models import load_model
-from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import confusion_matrix, accuracy_score
-import matplotlib.pyplot as plt
-import seaborn as sns  # Requiere instalación: pip install seaborn
-import io
-import base64
+import seaborn as sns
+from flask import Flask, jsonify, render_template, request
+from sklearn.metrics import accuracy_score, confusion_matrix
 
-# Crear la aplicación Flask
+from modelos import FEATURES, LABEL, MODEL_NAMES, dataframe_from_values, get_predictor
+
+MAX_FILAS_LOTE = 5000
+
 app = Flask(__name__)
+app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024  # 2 MB por archivo
 
-# Cargar los modelos desde la carpeta 'models/'
-with open("models/logistic_model.pkl", "rb") as f:
-    logistic_model = pickle.load(f)
 
-with open("models/svm_model.pkl", "rb") as f:
-    svm_model = pickle.load(f)
+def error(mensaje, codigo=400):
+    return jsonify({"error": mensaje}), codigo
 
-ann_model = load_model("models/ann_model.keras")
 
-with open("models/fcm_model.pkl", "rb") as f:
-    fcm_adj_matrix = pickle.load(f)
+@app.errorhandler(413)
+def archivo_muy_grande(_):
+    return error("El archivo supera el límite de 2 MB.", 413)
 
-# Ajustar la matriz de adyacencia FCM para 30 nodos
-if fcm_adj_matrix.shape[0] == 31:
-    fcm_adj_matrix = fcm_adj_matrix[:30, :30]
-    print("Matriz FCM ajustada a 30x30 nodos.")
 
-# Inicializar el escalador estándar
-scaler = StandardScaler()
-
-# Función de activación sigmoide estable
-def sigmoid(x):
-    x = np.clip(x, -500, 500)  # Limitar valores extremos para evitar desbordamientos
-    return 1 / (1 + np.exp(-x))
-
-# Función para realizar predicciones con FCM
-def predict_fcm(adj_matrix, data):
-    if adj_matrix.shape[0] != data.shape[0]:
-        raise ValueError("El número de datos ingresados no coincide con los nodos del modelo FCM.")
-    concepts = data
-    for _ in range(10):  # Iteraciones de actualización
-        concepts = sigmoid(np.dot(adj_matrix, concepts))
-    return np.round(concepts[0])  # Retornar el primer concepto redondeado (valor binario)
-
-# Ruta para el index.html
 @app.route("/")
 def home():
-    return render_template("index.html")  # Página HTML para interactuar con la app
+    return render_template("index.html")
 
-# Ruta para manejar las predicciones individuales
+
+@app.route("/metrics")
+def metrics():
+    """Métricas de los modelos sobre el conjunto de prueba (generadas por trainers/train.py)."""
+    return jsonify(get_predictor().metrics)
+
+
+@app.route("/example")
+def example():
+    """Una fila al azar del dataset, para probar el formulario."""
+    fila = pd.read_excel(os.path.join(os.path.dirname(__file__), "FGR_dataset.xlsx")).sample(1).iloc[0]
+    return jsonify({"values": {c: round(float(fila[c]), 4) for c in FEATURES}, "label": int(fila[LABEL])})
+
+
 @app.route("/predict", methods=["POST"])
 def predict():
+    model_type = request.form.get("model_type", "")
+    if model_type not in MODEL_NAMES:
+        return error("Modelo no reconocido.")
+
+    faltantes = [c for c in FEATURES if not request.form.get(c, "").strip()]
+    if faltantes:
+        return error(f"Faltan campos: {', '.join(faltantes)}.")
     try:
-        # Obtener los datos del formulario
-        data = np.array([float(request.form[key]) for key in request.form if key != "model_type"])
-        model_type = request.form["model_type"]
+        values = [float(request.form[c]) for c in FEATURES]
     except ValueError:
-        return jsonify({"error": "Por favor, ingresa valores válidos en todos los campos."}), 400
+        return error("Por favor, ingresa valores numéricos válidos en todos los campos.")
+    if not np.isfinite(values).all():
+        return error("Los valores deben ser números finitos.")
+    if max(abs(v) for v in values) > 100:
+        return error("Hay valores fuera de rango: los modelos esperan datos estandarizados (aprox. entre -5 y +6).")
 
-    # Escalar los datos de entrada para modelos que no sean FCM
-    if model_type != "fcm":
-        scaled_data = scaler.fit_transform([data])
+    prediction = int(get_predictor().predict(dataframe_from_values(values), model_type)[0])
+    return jsonify({"prediction": prediction, "message": "Verdadero" if prediction == 1 else "Falso"})
 
-    # Realizar la predicción según el modelo seleccionado
-    if model_type == "logistic":
-        prediction = logistic_model.predict(scaled_data)[0]
-    elif model_type == "svm":
-        prediction = svm_model.predict(scaled_data)[0]
-    elif model_type == "ann":
-        prediction = ann_model.predict(scaled_data).flatten()[0]  # Usar flatten para obtener un escalar
-        prediction = 1 if prediction >= 0.5 else 0  # Convertir probabilidad a clase (0 o 1)
-    elif model_type == "fcm":
-        # Validar el número de características
-        if fcm_adj_matrix.shape[0] != len(data):
-            return jsonify({"error": f"El modelo FCM requiere exactamente {fcm_adj_matrix.shape[0]} características, pero se ingresaron {len(data)}."}), 400
-        prediction = predict_fcm(fcm_adj_matrix, data)  # Ya retorna un escalar
-    else:
-        return jsonify({"error": "Modelo no reconocido."}), 400
 
-    # Determinar el mensaje si es verdadero o falso
-    message = "Verdadero" if int(prediction) == 1 else "Falso"
+def leer_archivo(file):
+    nombre = (file.filename or "").lower()
+    if nombre.endswith(".csv"):
+        return pd.read_csv(file)
+    if nombre.endswith(".xlsx"):
+        return pd.read_excel(file)
+    raise ValueError("Extensión no permitida. Solo se aceptan archivos .csv o .xlsx.")
 
-    # Retornar resultados sin probabilidad
-    return jsonify({
-        "prediction": int(prediction),
-        "message": message  # Mensaje indicando si es Verdadero o Falso
-    })
 
-# Ruta para manejar predicciones por lote (batch)
 @app.route("/batch_predict", methods=["POST"])
 def batch_predict():
+    model_type = request.form.get("batch_model", "logistic")
+    if model_type not in MODEL_NAMES:
+        return error(f"Modelo '{model_type}' no reconocido.")
+    if "file" not in request.files or not request.files["file"].filename:
+        return error("No se subió ningún archivo.")
+
     try:
-        # Capturar el modelo seleccionado desde el formulario
-        model_type = request.form.get("batch_model", "logistic")  # Modelo por defecto: logistic
-        print(f"Modelo Seleccionado: {model_type}")
+        data = leer_archivo(request.files["file"])
+    except ValueError as e:
+        return error(str(e))
+    except Exception:
+        return error("No se pudo leer el archivo. Revisa que sea un .csv o .xlsx válido.")
 
-        # Verificar si se subió un archivo
-        if "file" not in request.files:
-            return jsonify({"error": "No se subió ningún archivo."}), 400
+    faltantes = [c for c in FEATURES if c not in data.columns]
+    if faltantes:
+        return error(f"Faltan las columnas: {', '.join(faltantes)}. Se esperan C1..C30 y, opcionalmente, {LABEL}.")
+    if len(data) == 0:
+        return error("El archivo no tiene filas.")
+    if len(data) > MAX_FILAS_LOTE:
+        return error(f"El archivo tiene demasiadas filas (máximo {MAX_FILAS_LOTE}).")
 
-        file = request.files["file"]
+    X = data[FEATURES].apply(pd.to_numeric, errors="coerce")
+    if X.isnull().values.any():
+        return error("Las columnas C1..C30 contienen valores vacíos o no numéricos.")
 
-        # Verificar la extensión del archivo
-        if not (file.filename.endswith(".csv") or file.filename.endswith(".xlsx")):
-            return jsonify({"error": "Extensión de archivo no permitida. Solo se aceptan archivos .csv o .xlsx."}), 400
+    y_pred = get_predictor().predict(X, model_type)
+    respuesta = {"rows": int(len(data)), "positives": int(y_pred.sum())}
 
-        # Leer el archivo como DataFrame
-        if file.filename.endswith(".csv"):
-            data = pd.read_csv(file)
-        else:
-            data = pd.read_excel(file)
+    if LABEL not in data.columns:
+        respuesta["accuracy"] = None
+        return jsonify(respuesta)
 
-        # Verificar valores nulos
-        if data.isnull().values.any():
-            return jsonify({"error": "El archivo contiene valores nulos o incompletos."}), 400
+    y_true = pd.to_numeric(data[LABEL], errors="coerce")
+    if y_true.isnull().any():
+        return error(f"La columna {LABEL} tiene valores vacíos o no numéricos.")
+    y_true = y_true.astype(int)
 
-        # Validar que el archivo tenga suficientes columnas
-        if data.shape[1] < 2:
-            return jsonify({"error": "El archivo debe contener al menos una columna de características y una columna de etiquetas."}), 400
+    labels = [0, 1]
+    matrix = confusion_matrix(y_true, y_pred, labels=labels)
+    fig, ax = plt.subplots(figsize=(6, 5))
+    try:
+        sns.heatmap(matrix, annot=True, fmt="d", cmap="Blues", xticklabels=labels, yticklabels=labels, ax=ax)
+        ax.set_xlabel("Predicción")
+        ax.set_ylabel("Etiqueta verdadera")
+        ax.set_title(f"Matriz de confusión ({model_type.upper()})")
+        buf = io.BytesIO()
+        fig.savefig(buf, format="png", bbox_inches="tight")
+        grafico = base64.b64encode(buf.getvalue()).decode("utf-8")
+    finally:
+        plt.close(fig)
 
-        # Determinar columnas requeridas para FCM
-        if model_type == "fcm":
-            required_columns = [f"C{i}" for i in range(1, fcm_adj_matrix.shape[0] + 1)]  # Nodos = columnas requeridas
-            if not all(col in data.columns for col in required_columns):
-                return jsonify({"error": f"El archivo no contiene todas las columnas requeridas para FCM. Se esperaban las columnas: {', '.join(required_columns)}."}), 400
+    respuesta.update({
+        "accuracy": f"{accuracy_score(y_true, y_pred) * 100:.2f}%",
+        "confusion_matrix": matrix.tolist(),
+        "graph": grafico,
+    })
+    return jsonify(respuesta)
 
-        # Separar características y etiquetas
-        X = data.iloc[:, :-1].values  # Todas las columnas excepto la última
-        y_true = data.iloc[:, -1].values  # Última columna como etiqueta verdadera
 
-        # Validar dimensiones para FCM
-        if model_type == "fcm" and X.shape[1] != fcm_adj_matrix.shape[0]:
-            return jsonify({"error": f"El modelo FCM requiere exactamente {fcm_adj_matrix.shape[0]} características, pero el archivo contiene {X.shape[1]} columnas."}), 400
-
-        # Seleccionar el modelo que se desea utilizar
-        if model_type == "logistic":
-            model_to_use = logistic_model
-        elif model_type == "svm":
-            model_to_use = svm_model
-        elif model_type == "ann":
-            model_to_use = ann_model
-        elif model_type == "fcm":
-            model_to_use = fcm_adj_matrix  # Para FCM, utilizamos la matriz de adyacencia directamente
-        else:
-            return jsonify({"error": f"Modelo '{model_type}' no reconocido."}), 400
-
-        # Procesar los datos de entrada
-        if model_type != "fcm":
-            # Escalar los datos para modelos que no sean FCM
-            X_scaled = scaler.fit_transform(X)
-
-            if model_type == "ann":
-                # ANN: Convertir predicciones continuas a binarias
-                y_pred = (model_to_use.predict(X_scaled).flatten() >= 0.5).astype(int)
-            else:
-                # Logistic Regression y SVM
-                y_pred = model_to_use.predict(X_scaled)
-        else:
-            # Para FCM, no se utiliza el escalador
-            y_pred = [predict_fcm(model_to_use, row) for row in X]
-
-        # Calcular matriz de confusión y exactitud
-        conf_matrix = confusion_matrix(y_true, y_pred)
-        accuracy = accuracy_score(y_true, y_pred) * 100
-
-        # Crear el gráfico de la matriz de confusión
-        plt.figure(figsize=(8, 6))
-        try:
-            labels = sorted(np.unique(y_true))
-            sns.heatmap(conf_matrix, annot=True, fmt="d", cmap="Blues", xticklabels=labels, yticklabels=labels)
-            plt.xlabel("Predicción")
-            plt.ylabel("Etiqueta Verdadera")
-            plt.title(f"Matriz de Confusión ({model_type.upper()})")
-
-            buf = io.BytesIO()
-            plt.savefig(buf, format="png")
-            buf.seek(0)
-            image_base64 = base64.b64encode(buf.read()).decode("utf-8")
-            buf.close()
-        finally:
-            plt.close()
-
-        return jsonify({
-            "accuracy": f"{accuracy:.2f}%",
-            "graph": image_base64
-        })
-    except Exception as e:
-        return jsonify({"error": f"Error procesando el archivo: {str(e)}"}), 500
-     
-# Ejecutar la aplicación
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=os.environ.get("FLASK_DEBUG") == "1")

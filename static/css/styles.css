@@ -928,3 +928,13 @@ footer {
         justify-content: center;
     }
 }
+.notice {
+    background: #fff8e1;
+    border-left: 4px solid #f5a623;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+    font-size: 0.95rem;
+}
+.notice .btn { margin-top: 10px; }
+#example-label { margin-left: 10px; font-weight: 600; }

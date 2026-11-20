@@ -170,7 +170,7 @@
                         <i class="fas fa-project-diagram"></i>
                     </div>
                     <h3>Mapas Cognitivos Difusos (FCM)</h3>
-                    <p>Combinación de redes neuronales y lógica difusa que modela relaciones causales entre conceptos.</p>
+                    <p>Combinación de redes neuronales y lógica difusa que modela relaciones causales entre conceptos. <strong>En este proyecto es experimental:</strong> la matriz de pesos no está entrenada y su exactitud es la del azar (50%), por eso se incluye solo como referencia.</p>
                     <div class="model-details">
                         <h4>Características:</h4>
                         <ul>
@@ -286,9 +286,17 @@
                 <div class="card">
                     <div class="card-header">
                         <h2><i class="fas fa-user-md"></i> Predicción Individual</h2>
-                        <p>Complete todos los campos para obtener una predicción precisa</p>
+                        <p>Complete todos los campos para obtener una predicción</p>
                     </div>
                     <div class="card-body">
+                        <div class="notice">
+                            <strong>Proyecto educativo, no es una herramienta médica.</strong>
+                            Los modelos se entrenaron con un conjunto de datos de 112 pacientes que ya venía
+                            <em>estandarizado</em> (promedio 0 y desviación 1 por variable). Por eso los campos esperan
+                            valores en esa escala (aprox. entre -4 y +6), no en las unidades del texto de ayuda.
+                            <button type="button" id="load-example" class="btn secondary">Cargar una fila de ejemplo</button>
+                            <span id="example-label"></span>
+                        </div>
                         <form action="/predict" method="post" id="individual-form">
                             <div class="form-sections">
                                 <!-- Sección 1: Información Básica -->
@@ -297,31 +305,31 @@
                                     <div class="form-row">
                                         <div class="form-group">
                                             <label for="C1">Edad (años):</label>
-                                            <input type="number" name="C1" id="C1" step="1" min="0" required>
+                                            <input type="number" name="C1" id="C1" step="any" required>
                                             <small class="form-help">Edad de la paciente en años completos.</small>
                                         </div>
                                         <div class="form-group">
                                             <label for="C2">Índice de Masa Corporal (BMI):</label>
-                                            <input type="number" name="C2" id="C2" step="0.1" min="0" required>
+                                            <input type="number" name="C2" id="C2" step="any" required>
                                             <small class="form-help">BMI = peso (kg) / altura² (m²).</small>
                                         </div>
                                     </div>
                                     <div class="form-row">
                                         <div class="form-group">
                                             <label for="C3">Edad Gestacional al Parto (semanas):</label>
-                                            <input type="number" name="C3" id="C3" step="1" min="0" required>
+                                            <input type="number" name="C3" id="C3" step="any" required>
                                             <small class="form-help">Semanas completas de gestación al momento del parto.</small>
                                         </div>
                                         <div class="form-group">
                                             <label for="C4">Gravidez:</label>
-                                            <input type="number" name="C4" id="C4" step="1" min="0" required>
+                                            <input type="number" name="C4" id="C4" step="any" required>
                                             <small class="form-help">Número total de embarazos, incluyendo el actual.</small>
                                         </div>
                                     </div>
                                     <div class="form-row">
                                         <div class="form-group">
                                             <label for="C5">Paridad:</label>
-                                            <input type="number" name="C5" id="C5" step="1" min="0" required>
+                                            <input type="number" name="C5" id="C5" step="any" required>
                                             <small class="form-help">Número de partos previos.</small>
                                         </div>
                                     </div>
@@ -333,24 +341,19 @@
                                     <div class="form-row">
                                         <div class="form-group">
                                             <label for="C6">Síntomas Iniciales (IOS):</label>
-                                            <select name="C6" id="C6" required>
-                                                <option value="">-- Seleccionar --</option>
-                                                <option value="0">Edema</option>
-                                                <option value="1">Hipertensión</option>
-                                                <option value="2">FGR</option>
-                                            </select>
+                                            <input type="number" name="C6" id="C6" step="any" required>
                                             <small class="form-help">Primer síntoma observado en la paciente.</small>
                                         </div>
                                         <div class="form-group">
                                             <label for="C7">Edad Gestacional de Inicio de IOS (semanas):</label>
-                                            <input type="number" name="C7" id="C7" step="1" min="0" required>
+                                            <input type="number" name="C7" id="C7" step="any" required>
                                             <small class="form-help">Semana gestacional en que apareció el primer síntoma.</small>
                                         </div>
                                     </div>
                                     <div class="form-row">
                                         <div class="form-group">
                                             <label for="C8">Intervalo desde el Inicio de IOS al Parto (días):</label>
-                                            <input type="number" name="C8" id="C8" step="1" min="0" required>
+                                            <input type="number" name="C8" id="C8" step="any" required>
                                             <small class="form-help">Días transcurridos desde la aparición del primer síntoma hasta el parto.</small>
                                         </div>
                                     </div>
@@ -363,24 +366,24 @@
                                     <div class="form-row">
                                         <div class="form-group">
                                             <label for="C9">Edad Gestacional de Inicio de Hipertensión (semanas):</label>
-                                            <input type="number" name="C9" id="C9" step="1" min="0" required>
+                                            <input type="number" name="C9" id="C9" step="any" required>
                                             <small class="form-help">Semana gestacional en que se detectó hipertensión.</small>
                                         </div>
                                         <div class="form-group">
                                             <label for="C10">Intervalo desde el Inicio de Hipertensión al Parto (días):</label>
-                                            <input type="number" name="C10" id="C10" step="1" min="0" required>
+                                            <input type="number" name="C10" id="C10" step="any" required>
                                             <small class="form-help">Días transcurridos desde la detección de hipertensión hasta el parto.</small>
                                         </div>
                                     </div>
                                     <div class="form-row">
                                         <div class="form-group">
                                             <label for="C11">Edad Gestacional de Inicio de Edema (semanas):</label>
-                                            <input type="number" name="C11" id="C11" step="1" min="0" required>
+                                            <input type="number" name="C11" id="C11" step="any" required>
                                             <small class="form-help">Semana gestacional en que se detectó edema.</small>
                                         </div>
                                         <div class="form-group">
                                             <label for="C12">Intervalo desde el Inicio de Edema al Parto (días):</label>
-                                            <input type="number" name="C12" id="C12" step="1" min="0" required>
+                                            <input type="number" name="C12" id="C12" step="any" required>
                                             <small class="form-help">Días transcurridos desde la detección de edema hasta el parto.</small>
                                         </div>
                                     </div>
@@ -392,12 +395,12 @@
                                     <div class="form-row">
                                         <div class="form-group">
                                             <label for="C13">Edad Gestacional de Inicio de Proteinuria (semanas):</label>
-                                            <input type="number" name="C13" id="C13" step="1" min="0" required>
+                                            <input type="number" name="C13" id="C13" step="any" required>
                                             <small class="form-help">Semana gestacional en que se detectó proteinuria.</small>
                                         </div>
                                         <div class="form-group">
                                             <label for="C14">Intervalo desde el Inicio de Proteinuria al Parto (días):</label>
-                                            <input type="number" name="C14" id="C14" step="1" min="0" required>
+                                            <input type="number" name="C14" id="C14" step="any" required>
                                             <small class="form-help">Días transcurridos desde la detección de proteinuria hasta el parto.</small>
                                         </div>
                                     </div>
@@ -409,20 +412,12 @@
                                     <div class="form-row">
                                         <div class="form-group">
                                             <label for="C15">Tratamiento Expectante:</label>
-                                            <select name="C15" id="C15" required>
-                                                <option value="">-- Seleccionar --</option>
-                                                <option value="0">No</option>
-                                                <option value="1">Sí</option>
-                                            </select>
+                                            <input type="number" name="C15" id="C15" step="any" required>
                                             <small class="form-help">Indica si se aplicó tratamiento expectante.</small>
                                         </div>
                                         <div class="form-group">
                                             <label for="C16">Terapia Antihipertensiva Antes de Hospitalización:</label>
-                                            <select name="C16" id="C16" required>
-                                                <option value="">-- Seleccionar --</option>
-                                                <option value="0">No</option>
-                                                <option value="1">Sí</option>
-                                            </select>
+                                            <input type="number" name="C16" id="C16" step="any" required>
                                             <small class="form-help">Indica si se aplicó terapia antihipertensiva antes de la hospitalización.</small>
                                         </div>
                                     </div>
@@ -434,24 +429,19 @@
                                     <div class="form-row">
                                         <div class="form-group">
                                             <label for="C17">Historia Clínica Pasada:</label>
-                                            <select name="C17" id="C17" required>
-                                                <option value="">-- Seleccionar --</option>
-                                                <option value="0">No</option>
-                                                <option value="1">Hipertensión</option>
-                                                <option value="2">PCOS</option>
-                                            </select>
+                                            <input type="number" name="C17" id="C17" step="any" required>
                                             <small class="form-help">Condiciones médicas previas relevantes.</small>
                                         </div>
                                     </div>
                                     <div class="form-row">
                                         <div class="form-group">
                                             <label for="C18">Presión Sistólica Máxima:</label>
-                                            <input type="number" name="C18" id="C18" step="1" min="0" required>
+                                            <input type="number" name="C18" id="C18" step="any" required>
                                             <small class="form-help">Valor máximo de presión sistólica registrado (mmHg).</small>
                                         </div>
                                         <div class="form-group">
                                             <label for="C19">Presión Diastólica Máxima:</label>
-                                            <input type="number" name="C19" id="C19" step="1" min="0" required>
+                                            <input type="number" name="C19" id="C19" step="any" required>
                                             <small class="form-help">Valor máximo de presión diastólica registrado (mmHg).</small>
                                         </div>
                                     </div>
@@ -463,24 +453,12 @@
                                     <div class="form-row">
                                         <div class="form-group">
                                             <label for="C20">Razones para el Parto:</label>
-                                            <select name="C20" id="C20" required>
-                                                <option value="">-- Seleccionar --</option>
-                                                <option value="0">Síndrome HELLP</option>
-                                                <option value="1">Distress Fetal</option>
-                                                <option value="2">Disfunción Orgánica</option>
-                                                <option value="3">Hipertensión Incontrolada</option>
-                                                <option value="4">Edema</option>
-                                                <option value="5">FGR</option>
-                                            </select>
+                                            <input type="number" name="C20" id="C20" step="any" required>
                                             <small class="form-help">Principal razón médica para realizar el parto.</small>
                                         </div>
                                         <div class="form-group">
                                             <label for="C21">Modo de Parto:</label>
-                                            <select name="C21" id="C21" required>
-                                                <option value="">-- Seleccionar --</option>
-                                                <option value="0">Cesárea (CS)</option>
-                                                <option value="1">Odinopoeia</option>
-                                            </select>
+                                            <input type="number" name="C21" id="C21" step="any" required>
                                             <small class="form-help">Método utilizado para el parto.</small>
                                         </div>
                                     </div>
@@ -492,55 +470,55 @@
                                     <div class="form-row">
                                         <div class="form-group">
                                             <label for="C22">Valor Máximo BNP:</label>
-                                            <input type="number" name="C22" id="C22" step="0.1" min="0" required>
+                                            <input type="number" name="C22" id="C22" step="any" required>
                                             <small class="form-help">Péptido natriurético cerebral (pg/mL).</small>
                                         </div>
                                         <div class="form-group">
                                             <label for="C23">Valores Máximos de Creatinina:</label>
-                                            <input type="number" name="C23" id="C23" step="0.1" min="0" required>
+                                            <input type="number" name="C23" id="C23" step="any" required>
                                             <small class="form-help">Nivel máximo de creatinina (mg/dL).</small>
                                         </div>
                                     </div>
                                     <div class="form-row">
                                         <div class="form-group">
                                             <label for="C24">Valores Máximos de Ácido Úrico:</label>
-                                            <input type="number" name="C24" id="C24" step="0.1" min="0" required>
+                                            <input type="number" name="C24" id="C24" step="any" required>
                                             <small class="form-help">Nivel máximo de ácido úrico (mg/dL).</small>
                                         </div>
                                         <div class="form-group">
                                             <label for="C25">Valores Máximos de Proteinuria:</label>
-                                            <input type="number" name="C25" id="C25" step="0.1" min="0" required>
+                                            <input type="number" name="C25" id="C25" step="any" required>
                                             <small class="form-help">Nivel máximo de proteinuria (g/24h).</small>
                                         </div>
                                     </div>
                                     <div class="form-row">
                                         <div class="form-group">
                                             <label for="C26">Valores Máximos de Proteína Total:</label>
-                                            <input type="number" name="C26" id="C26" step="0.1" min="0" required>
+                                            <input type="number" name="C26" id="C26" step="any" required>
                                             <small class="form-help">Nivel máximo de proteína total (g/dL).</small>
                                         </div>
                                         <div class="form-group">
                                             <label for="C27">Valores Máximos de Albúmina:</label>
-                                            <input type="number" name="C27" id="C27" step="0.1" min="0" required>
+                                            <input type="number" name="C27" id="C27" step="any" required>
                                             <small class="form-help">Nivel máximo de albúmina (g/dL).</small>
                                         </div>
                                     </div>
                                     <div class="form-row">
                                         <div class="form-group">
                                             <label for="C28">Valores Máximos de ALT:</label>
-                                            <input type="number" name="C28" id="C28" step="0.1" min="0" required>
+                                            <input type="number" name="C28" id="C28" step="any" required>
                                             <small class="form-help">Nivel máximo de ALT (U/L).</small>
                                         </div>
                                         <div class="form-group">
                                             <label for="C29">Valores Máximos de AST:</label>
-                                            <input type="number" name="C29" id="C29" step="0.1" min="0" required>
+                                            <input type="number" name="C29" id="C29" step="any" required>
                                             <small class="form-help">Nivel máximo de AST (U/L).</small>
                                         </div>
                                     </div>
                                     <div class="form-row">
                                         <div class="form-group">
                                             <label for="C30">Valores Máximos de Plaquetas:</label>
-                                            <input type="number" name="C30" id="C30" step="1" min="0" required>
+                                            <input type="number" name="C30" id="C30" step="any" required>
                                             <small class="form-help">Recuento máximo de plaquetas (×10³/μL).</small>
                                         </div>
                                     </div>
@@ -556,7 +534,7 @@
                                                 <option value="">-- Seleccionar --</option>
                                                 <option value="logistic">Regresión Logística</option>
                                                 <option value="ann">Red Neuronal Artificial (ANN)</option>
-                                                <option value="fcm">Mapas Cognitivos Difusos (FCM)</option>
+                                                <option value="fcm">FCM (experimental, sin entrenar)</option>
                                                 <option value="svm">Máquinas de Apoyo Vectorial (SVM)</option>
                                             </select>
                                             <small class="form-help">Algoritmo a utilizar para la predicción.</small>
@@ -601,7 +579,7 @@
                                             <option value="">-- Seleccionar --</option>
                                             <option value="logistic">Regresión Logística</option>
                                             <option value="ann">Red Neuronal Artificial (ANN)</option>
-                                            <option value="fcm">Mapas Cognitivos Difusos (FCM)</option>
+                                            <option value="fcm">FCM (experimental, sin entrenar)</option>
                                             <option value="svm">Máquinas de Apoyo Vectorial (SVM)</option>
                                         </select>
                                         <small class="form-help">Por favor, seleccione un modelo antes de enviar el formulario.</small>

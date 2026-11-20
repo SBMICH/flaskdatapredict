@@ -100,6 +100,24 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    // Cargar una fila de ejemplo del dataset
+    const exampleBtn = document.getElementById('load-example');
+    if (exampleBtn) {
+        exampleBtn.addEventListener('click', async () => {
+            const label = document.getElementById('example-label');
+            try {
+                const data = await (await fetch('/example')).json();
+                Object.entries(data.values).forEach(([name, value]) => {
+                    const field = document.getElementById(name);
+                    if (field) field.value = value;
+                });
+                label.textContent = `Fila cargada (valor real de C31: ${data.label})`;
+            } catch (err) {
+                label.textContent = 'No se pudo cargar el ejemplo.';
+            }
+        });
+    }
+
     // Manejar predicción individual
 const individualForm = document.getElementById('individual-form');
 if (individualForm) {
@@ -159,12 +177,6 @@ if (individualForm) {
             const form = e.target;
             const formData = new FormData(form);
 
-            // Depurar los datos que se envían al backend
-            console.log("Datos enviados al backend:");
-            formData.forEach((value, key) => {
-                console.log(`${key}: ${value}`);
-            });
-            
             const resultDiv = document.getElementById('batch-result');
             const graphDiv = document.getElementById('batch-graph');
             
@@ -192,11 +204,16 @@ if (individualForm) {
                         `;
                     }
                     
+                    const exactitudHTML = data.accuracy
+                        ? `<p><strong>Exactitud:</strong> ${data.accuracy}</p>`
+                        : `<p>Filas procesadas: ${data.rows}. Clasificadas como "Verdadero": ${data.positives}.
+                           (El archivo no incluye la columna C31, por eso no se calcula la exactitud.)</p>`;
+
                     resultDiv.innerHTML = `
                         <div class="success">
                             <h3><i class="fas fa-check-circle"></i> Análisis por Lote Completado</h3>
                             ${confusionMatrixHTML}
-                            <p><strong>Exactitud:</strong> ${data.accuracy}</p>
+                            ${exactitudHTML}
                         </div>
                     `;
                     

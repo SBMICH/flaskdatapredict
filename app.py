@@ -1,17 +1,15 @@
 import os
 
-import matplotlib
-matplotlib.use("Agg")  # Backend sin interfaz gráfica
+# Un solo hilo para las librerías numéricas. En servidores con CPU limitada (Render Free: 0,1 CPU)
+# NumPy, SciPy y scikit-learn crean un hilo por cada núcleo de la máquina física y se pelean por esa
+# fracción de CPU hasta dejar la app colgada. Debe ir antes de importar numpy.
+for _variable in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS", "NUMEXPR_NUM_THREADS"):
+    os.environ.setdefault(_variable, "1")
 
-import base64
-import io
 import json
-import threading
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import seaborn as sns
 from flask import Flask, Response, jsonify, render_template, request
 from sklearn.metrics import accuracy_score, confusion_matrix
 
@@ -43,9 +41,10 @@ for m in MODELOS:
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024  # 2 MB por archivo
 
-# Carga los modelos en segundo plano al arrancar para que la primera predicción no tarde.
+# Carga los modelos al arrancar, antes de aceptar visitas, para que la primera predicción no tarde.
+# (Un hilo en segundo plano competiría por la CPU con las peticiones.)
 if os.environ.get("PRELOAD_MODELS", "1") == "1":
-    threading.Thread(target=get_predictor, daemon=True).start()
+    get_predictor()
 
 
 def error(mensaje, codigo=400):
@@ -159,24 +158,11 @@ def batch_predict():
         return error(f"La columna {LABEL} tiene valores vacíos o no numéricos.")
     y_true = y_true.astype(int)
 
-    labels = [0, 1]
-    matrix = confusion_matrix(y_true, y_pred, labels=labels)
-    fig, ax = plt.subplots(figsize=(6, 5))
-    try:
-        sns.heatmap(matrix, annot=True, fmt="d", cmap="Blues", xticklabels=labels, yticklabels=labels, ax=ax)
-        ax.set_xlabel("Predicción")
-        ax.set_ylabel("Etiqueta verdadera")
-        ax.set_title(f"Matriz de confusión ({model_type.upper()})")
-        buf = io.BytesIO()
-        fig.savefig(buf, format="png", bbox_inches="tight")
-        grafico = base64.b64encode(buf.getvalue()).decode("utf-8")
-    finally:
-        plt.close(fig)
-
+    # La matriz se dibuja en el navegador (HTML y CSS): sin matplotlib el servidor es más ligero.
+    matrix = confusion_matrix(y_true, y_pred, labels=[0, 1])
     respuesta.update({
         "accuracy": f"{accuracy_score(y_true, y_pred) * 100:.2f}%",
         "confusion_matrix": matrix.tolist(),
-        "graph": grafico,
     })
     return jsonify(respuesta)
 

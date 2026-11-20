@@ -235,7 +235,11 @@ code { background: var(--surface-2); padding: 1px 6px; border-radius: 6px; font-
 .batch-row { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; margin: 16px 0 12px; }
 .batch-row label { font-weight: 600; font-size: .9rem; }
 .batch-output .result { margin-top: 0; }
-.graph img { width: 100%; margin-top: 14px; border-radius: 10px; }
+.graph { text-align: center; margin-top: 16px; }
+.cm-title { font-size: .95rem; margin-bottom: 8px; }
+.cm { margin: 0 auto; border-collapse: separate; border-spacing: 6px; }
+.cm th { font-size: .82rem; color: var(--muted); font-weight: 600; padding: 4px 8px; }
+.cm td { width: 110px; height: 80px; border-radius: 12px; font-size: 1.6rem; font-weight: 800; text-align: center; }
 
 /* ---------- Modelos ---------- */
 .model-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-bottom: 16px; }

@@ -226,6 +226,26 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Matriz de confusión 2x2 dibujada con HTML: el color de cada celda depende de cuántos casos tiene.
+    function matrizConfusion(m) {
+        const maximo = Math.max(1, ...m.flat());
+        const nombres = ['Normal', 'Restricción'];
+        const celda = (valor, acierto) => {
+            const alfa = (0.12 + 0.88 * valor / maximo).toFixed(2);
+            const color = acierto ? `rgba(15, 143, 126, ${alfa})` : `rgba(225, 29, 72, ${alfa})`;
+            const texto = valor / maximo > 0.55 ? '#fff' : 'var(--text)';
+            return `<td style="background:${color};color:${texto}">${valor}</td>`;
+        };
+        const filas = m.map((fila, i) => `<tr><th scope="row">${nombres[i]}</th>${fila.map((v, j) => celda(v, i === j)).join('')}</tr>`).join('');
+        return `<h4 class="cm-title">Matriz de confusión</h4>
+            <table class="cm">
+                <thead><tr><th></th><th colspan="2">Predicción</th></tr>
+                       <tr><th>Real</th><th>${nombres[0]}</th><th>${nombres[1]}</th></tr></thead>
+                <tbody>${filas}</tbody>
+            </table>
+            <p class="sub muted">Verde: aciertos · Rojo: errores</p>`;
+    }
+
     $('#batch-prediction-form')?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const box = $('#batch-result');
@@ -251,7 +271,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             box.className = 'result';
             box.innerHTML = html;
-            if (data.graph) graph.innerHTML = `<img src="data:image/png;base64,${data.graph}" alt="Matriz de confusión">`;
+            if (data.confusion_matrix) graph.innerHTML = matrizConfusion(data.confusion_matrix);
         } catch (err) {
             box.className = 'result error';
             box.innerHTML = `<strong>Error</strong><p class="sub">${escapeHtml(err.message)}</p>`;

@@ -6,6 +6,11 @@ que se ajustó durante el entrenamiento (models/preprocessor.pkl).
 La red neuronal se entrena con TensorFlow (trainers/train.py), pero la app no lo necesita:
 sus pesos se exportan a models/ann_weights.npz y la predicción se calcula con NumPy.
 """
+import os
+
+for _variable in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS", "NUMEXPR_NUM_THREADS"):
+    os.environ.setdefault(_variable, "1")  # ver el comentario en app.py
+
 import json
 import pickle
 import threading

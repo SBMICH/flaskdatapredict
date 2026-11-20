@@ -77,7 +77,7 @@ def test_lote_con_etiquetas(client, dataset):
     cuerpo = r.get_json()
     assert cuerpo["rows"] == len(dataset)
     assert len(cuerpo["confusion_matrix"]) == 2
-    assert cuerpo["graph"]
+    assert sum(map(sum, cuerpo["confusion_matrix"])) == len(dataset)
 
 
 def test_lote_sin_etiquetas(client, dataset):

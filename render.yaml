@@ -1,0 +1,13 @@
+# Despliegue en Render (https://render.com): New > Blueprint > elegir este repositorio.
+# La demo no instala TensorFlow: la red neuronal predice con NumPy a partir de models/ann_weights.npz.
+services:
+  - type: web
+    name: fgr-predict
+    runtime: python
+    plan: free
+    buildCommand: pip install --only-binary :all: --require-hashes -r requirements.txt
+    startCommand: gunicorn --workers 1 --threads 4 --timeout 120 --bind 0.0.0.0:$PORT app:app
+    healthCheckPath: /
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.8

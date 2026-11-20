@@ -1,0 +1,4 @@
+# Para reentrenar los modelos (trainers/train.py). Incluye TensorFlow, que la app web no necesita.
+-c requirements.txt
+-r requirements.in
+tensorflow==2.19.0

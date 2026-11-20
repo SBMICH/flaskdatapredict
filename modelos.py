@@ -2,12 +2,10 @@
 
 Todos los modelos reciben los datos ya preprocesados con el *mismo* preprocesador
 que se ajustó durante el entrenamiento (models/preprocessor.pkl).
+
+La red neuronal se entrena con TensorFlow (trainers/train.py), pero la app no lo necesita:
+sus pesos se exportan a models/ann_weights.npz y la predicción se calcula con NumPy.
 """
-import os
-
-os.environ.setdefault("CUDA_VISIBLE_DEVICES", "-1")  # Solo CPU
-os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "2")   # Menos mensajes de TensorFlow
-
 import json
 import pickle
 import threading
@@ -24,6 +22,47 @@ MODEL_NAMES = ("logistic", "svm", "ann", "fcm")
 
 def sigmoid(x):
     return 1 / (1 + np.exp(-np.clip(x, -500, 500)))
+
+
+class RedNeuronalNumpy:
+    """Paso hacia adelante de la red densa entrenada con Keras, usando solo NumPy.
+
+    Cada capa calcula  activación(x · W + b). El dropout solo actúa al entrenar, así que aquí no aparece.
+    """
+
+    def __init__(self, ruta):
+        with np.load(ruta, allow_pickle=False) as datos:
+            n = int(datos["n_capas"])
+            self.capas = [(datos[f"W{i}"], datos[f"b{i}"], str(datos[f"act{i}"])) for i in range(n)]
+
+    def probabilidad(self, X):
+        x = np.asarray(X, dtype=np.float64)
+        for W, b, activacion in self.capas:
+            x = x @ W + b
+            if activacion == "relu":
+                x = np.maximum(x, 0)
+            elif activacion == "sigmoid":
+                x = sigmoid(x)
+            elif activacion != "linear":
+                raise ValueError(f"Activación no soportada: {activacion}")
+        return x.flatten()
+
+    def predict(self, X):
+        return (self.probabilidad(X) >= 0.5).astype(int)
+
+
+def exportar_pesos(modelo_keras, ruta):
+    """Guarda los pesos de las capas densas de un modelo Keras en un .npz (lo usa trainers/train.py)."""
+    datos, i = {}, 0
+    for capa in modelo_keras.layers:
+        pesos = capa.get_weights()
+        if not pesos:  # Dropout, Input...: no tienen pesos
+            continue
+        datos[f"W{i}"], datos[f"b{i}"] = pesos
+        datos[f"act{i}"] = np.array(capa.get_config()["activation"])
+        i += 1
+    datos["n_capas"] = np.array(i)
+    np.savez(ruta, **datos)
 
 
 def predict_fcm(adj_matrix, X, iterations=10):
@@ -51,8 +90,7 @@ class Predictor:
         with open(models_dir / "fcm_model.pkl", "rb") as f:
             self.fcm_matrix = pickle.load(f)
 
-        from tensorflow.keras.models import load_model  # import lento: solo una vez
-        self.ann = load_model(models_dir / "ann_model.keras")
+        self.ann = RedNeuronalNumpy(models_dir / "ann_weights.npz")
 
         metrics_path = models_dir / "metrics.json"
         self.metrics = json.loads(metrics_path.read_text(encoding="utf-8")) if metrics_path.exists() else {}
@@ -67,7 +105,7 @@ class Predictor:
         if model_name == "svm":
             return self.svm.predict(X).astype(int)
         if model_name == "ann":
-            return (self.ann.predict(X, verbose=0).flatten() >= 0.5).astype(int)
+            return self.ann.predict(X)
         return predict_fcm(self.fcm_matrix, X)
 
 

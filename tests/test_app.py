@@ -157,3 +157,16 @@ def test_conversion_coincide_con_el_articulo(dataset):
     # Motivo del parto: 6 HELLP, 23 sufrimiento fetal, 17 hipertensión no controlada (Tabla 1 del artículo)
     conteo = reales["C20"].value_counts()
     assert (conteo[0], conteo[1], conteo[3]) == (6, 23, 17)
+
+
+def test_red_numpy_igual_a_keras(dataset):
+    """La app predice con NumPy; debe dar lo mismo que el modelo de TensorFlow del que salen los pesos.
+    Se omite si TensorFlow no está instalado (por ejemplo, en el servidor de la demo)."""
+    import pickle
+    keras = pytest.importorskip("tensorflow.keras.models")
+    from modelos import MODELS_DIR, RedNeuronalNumpy
+    with open(MODELS_DIR / "preprocessor.pkl", "rb") as f:
+        X = pickle.load(f).transform(dataset[FEATURES])
+    esperado = keras.load_model(MODELS_DIR / "ann_model.keras").predict(X, verbose=0).flatten()
+    obtenido = RedNeuronalNumpy(MODELS_DIR / "ann_weights.npz").probabilidad(X)
+    assert np.allclose(esperado, obtenido, atol=1e-5)

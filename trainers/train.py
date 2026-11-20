@@ -3,7 +3,8 @@
 Uso (desde la carpeta del proyecto):
     python trainers/train.py
 
-Guarda: preprocessor.pkl, logistic_model.pkl, svm_model.pkl, ann_model.keras y metrics.json.
+Guarda: preprocessor.pkl, logistic_model.pkl, svm_model.pkl, ann_model.keras, ann_weights.npz
+y metrics.json. Requiere TensorFlow: pip install -r requirements-train.txt
 El FCM (fcm_model.pkl) no se entrena aquí: solo se evalúa con el mismo conjunto de prueba.
 """
 import json
@@ -24,7 +25,7 @@ from sklearn.svm import SVC
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
-from modelos import FEATURES, LABEL, predict_fcm  # noqa: E402
+from modelos import FEATURES, LABEL, exportar_pesos, predict_fcm  # noqa: E402
 
 SEED = 42
 MODELS_DIR = ROOT / "models"
@@ -42,6 +43,9 @@ def cargar_datos():
 
 
 def entrenar_ann(X_train, y_train, X_test, y_test):
+    import os
+    os.environ.setdefault("CUDA_VISIBLE_DEVICES", "-1")  # solo CPU
+    os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "2")   # menos mensajes de TensorFlow
     import tensorflow as tf
     from tensorflow.keras.callbacks import EarlyStopping
     from tensorflow.keras.layers import Dense, Dropout, Input
@@ -111,6 +115,7 @@ def main():
     with open(MODELS_DIR / "svm_model.pkl", "wb") as f:
         pickle.dump(svm, f)
     ann.save(MODELS_DIR / "ann_model.keras")
+    exportar_pesos(ann, MODELS_DIR / "ann_weights.npz")  # lo que usa la app, sin TensorFlow
     (MODELS_DIR / "metrics.json").write_text(json.dumps(metrics, indent=2), encoding="utf-8")
 
     print(json.dumps(metrics, indent=2))

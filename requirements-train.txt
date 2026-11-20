@@ -1,0 +1,270 @@
+absl-py==2.5.1
+    # via
+    #   keras
+    #   tensorboard
+    #   tensorflow
+astunparse==1.6.3
+    # via tensorflow
+blinker==1.9.0
+    # via
+    #   -c requirements.txt
+    #   flask
+certifi==2026.10.23
+    # via requests
+charset-normalizer==3.5.2
+    # via requests
+click==8.5.0
+    # via
+    #   -c requirements.txt
+    #   flask
+cloudpickle==3.1.2
+    # via
+    #   -c requirements.txt
+    #   joblib
+contourpy==1.3.2 ; python_full_version < '3.11'
+    # via
+    #   -c requirements.txt
+    #   matplotlib
+contourpy==1.3.3 ; python_full_version == '3.11.*'
+    # via
+    #   -c requirements.txt
+    #   matplotlib
+contourpy==1.4.0 ; python_full_version >= '3.12'
+    # via
+    #   -c requirements.txt
+    #   matplotlib
+cycler==0.12.1
+    # via
+    #   -c requirements.txt
+    #   matplotlib
+et-xmlfile==2.0.0
+    # via
+    #   -c requirements.txt
+    #   openpyxl
+flask==3.1.3
+    # via
+    #   -c requirements.txt
+    #   -r requirements.in
+flatbuffers==25.12.19
+    # via tensorflow
+fonttools==4.65.0 ; python_full_version < '3.11'
+    # via
+    #   -c requirements.txt
+    #   matplotlib
+fonttools==4.68.0 ; python_full_version >= '3.11'
+    # via
+    #   -c requirements.txt
+    #   matplotlib
+gast==0.7.0
+    # via tensorflow
+google-pasta==0.2.0
+    # via tensorflow
+grpcio==1.85.1
+    # via
+    #   tensorboard
+    #   tensorflow
+gunicorn==26.2.0
+    # via
+    #   -c requirements.txt
+    #   -r requirements.in
+h5py==3.16.0
+    # via
+    #   keras
+    #   tensorflow
+idna==3.20
+    # via requests
+itsdangerous==2.2.0
+    # via
+    #   -c requirements.txt
+    #   flask
+jinja2==3.1.6
+    # via
+    #   -c requirements.txt
+    #   flask
+joblib==1.6.0
+    # via
+    #   -c requirements.txt
+    #   scikit-learn
+keras==3.12.4 ; python_full_version < '3.11'
+    # via tensorflow
+keras==3.15.1 ; python_full_version >= '3.11'
+    # via tensorflow
+kiwisolver==1.5.1
+    # via
+    #   -c requirements.txt
+    #   matplotlib
+libclang==18.1.1
+    # via tensorflow
+markdown==3.10.3 ; python_full_version < '3.11'
+    # via tensorboard
+markdown==3.11.3 ; python_full_version >= '3.11'
+    # via tensorboard
+markdown-it-py==4.2.0
+    # via rich
+markupsafe==3.0.4
+    # via
+    #   -c requirements.txt
+    #   flask
+    #   jinja2
+    #   werkzeug
+matplotlib==3.10.9 ; python_full_version < '3.11'
+    # via
+    #   -c requirements.txt
+    #   -r requirements.in
+    #   seaborn
+matplotlib==3.11.2 ; python_full_version >= '3.11'
+    # via
+    #   -c requirements.txt
+    #   -r requirements.in
+    #   seaborn
+mdurl==0.1.2
+    # via markdown-it-py
+ml-dtypes==0.5.4 ; python_full_version >= '3.14'
+    # via
+    #   keras
+    #   tensorflow
+ml-dtypes==0.6.0 ; python_full_version < '3.14'
+    # via
+    #   keras
+    #   tensorflow
+namex==0.1.0
+    # via keras
+numpy==2.1.3
+    # via
+    #   -c requirements.txt
+    #   -r requirements.in
+    #   contourpy
+    #   h5py
+    #   keras
+    #   matplotlib
+    #   ml-dtypes
+    #   pandas
+    #   scikit-learn
+    #   scipy
+    #   seaborn
+    #   tensorboard
+    #   tensorflow
+openpyxl==3.1.5
+    # via
+    #   -c requirements.txt
+    #   -r requirements.in
+opt-einsum==3.4.0
+    # via tensorflow
+optree==0.20.0
+    # via keras
+packaging==26.3
+    # via
+    #   -c requirements.txt
+    #   keras
+    #   matplotlib
+    #   tensorboard
+    #   tensorflow
+    #   wheel
+pandas==2.2.3
+    # via
+    #   -c requirements.txt
+    #   -r requirements.in
+    #   seaborn
+pillow==12.3.0 ; python_full_version < '3.11'
+    # via
+    #   -c requirements.txt
+    #   matplotlib
+pillow==13.0.0 ; python_full_version >= '3.11'
+    # via
+    #   -c requirements.txt
+    #   matplotlib
+protobuf==5.29.6
+    # via
+    #   tensorboard
+    #   tensorflow
+pygments==2.21.0
+    # via rich
+pyparsing==3.3.3
+    # via
+    #   -c requirements.txt
+    #   matplotlib
+python-dateutil==3.0.0 ; python_full_version < '3.11'
+    # via
+    #   -c requirements.txt
+    #   matplotlib
+    #   pandas
+python-dateutil==4.0.0 ; python_full_version >= '3.11'
+    # via
+    #   -c requirements.txt
+    #   matplotlib
+    #   pandas
+pytz==2026.6
+    # via
+    #   -c requirements.txt
+    #   pandas
+requests==2.34.2
+    # via tensorflow
+rich==15.0.0
+    # via keras
+scikit-learn==1.6.1
+    # via
+    #   -c requirements.txt
+    #   -r requirements.in
+scipy==1.15.3 ; python_full_version < '3.11'
+    # via
+    #   -c requirements.txt
+    #   scikit-learn
+scipy==1.17.1 ; python_full_version == '3.11.*'
+    # via
+    #   -c requirements.txt
+    #   scikit-learn
+scipy==1.18.1 ; python_full_version >= '3.12'
+    # via
+    #   -c requirements.txt
+    #   scikit-learn
+seaborn==0.13.2
+    # via
+    #   -c requirements.txt
+    #   -r requirements.in
+setuptools==84.2.1
+    # via
+    #   tensorboard
+    #   tensorflow
+six==1.17.0
+    # via
+    #   -c requirements.txt
+    #   astunparse
+    #   google-pasta
+    #   python-dateutil
+    #   tensorboard
+    #   tensorflow
+tensorboard==2.19.0
+    # via tensorflow
+tensorboard-data-server==0.7.2
+    # via tensorboard
+tensorflow==2.19.0
+    # via -r requirements-train.in
+tensorflow-io-gcs-filesystem==0.37.1 ; python_full_version < '3.12'
+    # via tensorflow
+termcolor==3.3.0
+    # via tensorflow
+threadpoolctl==3.8.0
+    # via
+    #   -c requirements.txt
+    #   scikit-learn
+typing-extensions==4.16.0
+    # via
+    #   grpcio
+    #   optree
+    #   tensorflow
+tzdata==2026.6
+    # via
+    #   -c requirements.txt
+    #   pandas
+    #   python-dateutil
+urllib3==2.8.0
+    # via requests
+werkzeug==3.1.9
+    # via
+    #   -c requirements.txt
+    #   flask
+    #   tensorboard
+wheel==0.48.0
+    # via astunparse
+wrapt==2.5.2
+    # via tensorflow

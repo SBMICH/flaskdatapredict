@@ -6,6 +6,14 @@ modelos y permite hacer predicciones individuales o subir un archivo `.csv`/`.xl
 
 > **Proyecto educativo. No es una herramienta médica ni debe usarse para tomar decisiones clínicas.**
 
+**Demo en vivo:** _(enlace de Render, pendiente)_ · puede tardar alrededor de un minuto en despertar si nadie la usó recientemente.
+
+![Cargar una paciente de ejemplo, comparar los cuatro modelos y predecir](docs/img/demo.gif)
+
+| Rendimiento de los modelos | Predicción por lote |
+|---|---|
+| ![Exactitud balanceada de cada modelo](docs/img/modelos.png) | ![Resultado de un archivo con matriz de confusión](docs/img/lote.png) |
+
 ## Datos
 
 Los datos provienen de un estudio retrospectivo con **72 pacientes** del Anhui Maternal and Child Health Care
@@ -62,6 +70,34 @@ python app.py
 
 Abre http://127.0.0.1:5000. Para depurar, define `FLASK_DEBUG=1` (por defecto está desactivado).
 
+Para reentrenar los modelos hace falta TensorFlow:
+
+```bash
+pip install -r requirements-train.txt
+python trainers/train.py
+```
+
+### TensorFlow solo para entrenar
+
+La red neuronal se entrena con TensorFlow/Keras, pero predecir con ella son solo cuatro multiplicaciones de
+matrices con sus activaciones (ReLU y sigmoide). Por eso `train.py` exporta los pesos a `models/ann_weights.npz` y
+la app calcula la predicción con NumPy (`RedNeuronalNumpy` en `modelos.py`). Un test comprueba que ambas versiones
+dan el mismo resultado (diferencia máxima ~10⁻⁷).
+
+| | Con TensorFlow | Sin TensorFlow (demo) |
+|---|---|---|
+| Memoria de la app en marcha | ~413 MB | ~164 MB |
+| Entorno instalado | más de 1 GB | ~400 MB |
+
+Así la demo cabe en el plan gratuito de Render (512 MB). `render.yaml` describe el despliegue:
+en Render, **New → Blueprint** y elegir este repositorio.
+
+| Archivo | Para qué |
+|---|---|
+| `requirements.txt` | La app web (versiones exactas con hash) |
+| `requirements-train.txt` | Lo anterior más TensorFlow, para `trainers/train.py` |
+| `requirements-dev.txt` | Pruebas |
+
 ## Cómo usarla
 
 - **Predicción individual:** cada campo se escribe en su unidad clínica (años, mmHg, µmol/L...) y empieza en el
@@ -81,8 +117,9 @@ Abre http://127.0.0.1:5000. Para depurar, define `FLASK_DEBUG=1` (por defecto es
 app.py                Rutas Flask y validación de entradas
 campos.py             Descripción, unidades y rangos de las 30 variables
 modelos.py            Carga de modelos y funciones de predicción (incluye el FCM)
-trainers/train.py     Entrena los modelos, guarda el preprocesador y las métricas
-models/               Modelos entrenados, preprocessor.pkl y metrics.json
+trainers/train.py     Entrena los modelos (TensorFlow), guarda el preprocesador, los pesos y las métricas
+models/               Modelos entrenados, ann_weights.npz, preprocessor.pkl y metrics.json
+docs/img/             Capturas para este README
 templates/, static/   Interfaz (HTML, CSS y JavaScript sin frameworks)
 herramientas/         Conversión a unidades reales y exportación a ARFF
 FGR_dataset.xlsx      Dataset original (estandarizado)

@@ -1,262 +1,260 @@
-document.addEventListener('DOMContentLoaded', function() {
-    // Manejo de pestañas
-    const tabButtons = document.querySelectorAll('.tab-btn');
-    const tabContents = document.querySelectorAll('.tab-content');
+document.addEventListener('DOMContentLoaded', () => {
+    const $ = (sel, root = document) => root.querySelector(sel);
+    const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
+    const escapeHtml = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-    tabButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            const tabId = button.getAttribute('data-tab');
-            
-            // Desactivar todas las pestañas
-            tabButtons.forEach(btn => btn.classList.remove('active'));
-            tabContents.forEach(content => content.classList.remove('active'));
-            
-            // Activar la pestaña seleccionada
-            button.classList.add('active');
-            document.getElementById(`${tabId}-tab`).classList.add('active');
-        });
-    });
+    /* ---------- Pestañas ---------- */
+    $$('.seg').forEach(btn => btn.addEventListener('click', () => {
+        $$('.seg').forEach(b => b.classList.toggle('active', b === btn));
+        $$('.tab-panel').forEach(p => p.classList.toggle('active', p.id === `${btn.dataset.tab}-tab`));
+    }));
 
-    // Manejo de carga de archivos
-    const fileInput = document.getElementById('file');
-    const fileInfo = document.querySelector('.file-info');
+    /* ---------- Navegación activa al hacer scroll ---------- */
+    const navLinks = $$('.nav a');
+    const sections = navLinks.map(a => $(a.getAttribute('href'))).filter(Boolean);
+    window.addEventListener('scroll', () => {
+        const y = window.scrollY + 120;
+        let current = null;
+        sections.forEach(s => { if (s.offsetTop <= y) current = s.id; });
+        navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === `#${current}`));
+    }, { passive: true });
 
-    if (fileInput) {
-        fileInput.addEventListener('change', function() {
-            if (this.files.length > 0) {
-                const fileName = this.files[0].name;
-                fileInfo.textContent = fileName;
-                fileInfo.style.color = 'var(--primary-color)';
-            } else {
-                fileInfo.textContent = 'Ningún archivo seleccionado';
-                fileInfo.style.color = 'var(--gray-color)';
-            }
-        });
+    /* ---------- Campos del formulario ---------- */
+    // Cada campo tiene un <select> con niveles y un <input> numérico (modo exacto).
+    // El input numérico siempre guarda el valor real que se envía al servidor.
+    const fields = $$('.field').map(el => ({
+        el,
+        col: el.dataset.col,
+        select: $('select', el),
+        exact: $('input.exact', el),
+        def: parseFloat($('select', el).dataset.default),
+    }));
+    const close = (a, b) => Math.abs(a - b) < 1e-4;
+    let exampleLabel = null;  // valor real de C31 si se cargó un ejemplo sin modificar
+
+    function refreshChanged(f) {
+        f.el.classList.toggle('changed', !close(parseFloat(f.exact.value), f.def));
     }
 
-    // Manejo de FAQ
-    const faqItems = document.querySelectorAll('.faq-item');
-    
-    faqItems.forEach(item => {
-        const question = item.querySelector('.faq-question');
-        
-        question.addEventListener('click', () => {
-            // Cerrar todos los otros items
-            faqItems.forEach(otherItem => {
-                if (otherItem !== item) {
-                    otherItem.classList.remove('active');
-                }
-            });
-            
-            // Toggle el item actual
-            item.classList.toggle('active');
-        });
-    });
-
-    // Navegación suave
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
-            e.preventDefault();
-            
-            const targetId = this.getAttribute('href');
-            const targetElement = document.querySelector(targetId);
-            
-            if (targetElement) {
-                window.scrollTo({
-                    top: targetElement.offsetTop - 100,
-                    behavior: 'smooth'
-                });
-                
-                // Actualizar clase active en la navegación
-                document.querySelectorAll('.main-nav a').forEach(navLink => {
-                    navLink.classList.remove('active');
-                });
-                
-                document.querySelector(`.main-nav a[href="${targetId}"]`)?.classList.add('active');
-            }
-        });
-    });
-
-    // Actualizar navegación al hacer scroll
-    window.addEventListener('scroll', function() {
-        let currentSection = '';
-        const sections = document.querySelectorAll('section[id]');
-        const scrollPosition = window.scrollY;
-        
-        sections.forEach(section => {
-            const sectionTop = section.offsetTop - 150;
-            const sectionHeight = section.offsetHeight;
-            
-            if (scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight) {
-                currentSection = '#' + section.getAttribute('id');
-            }
-        });
-        
-        document.querySelectorAll('.main-nav a').forEach(navLink => {
-            navLink.classList.remove('active');
-            if (navLink.getAttribute('href') === currentSection) {
-                navLink.classList.add('active');
-            }
-        });
-    });
-
-    // Cargar una fila de ejemplo del dataset
-    const exampleBtn = document.getElementById('load-example');
-    if (exampleBtn) {
-        exampleBtn.addEventListener('click', async () => {
-            const label = document.getElementById('example-label');
-            try {
-                const data = await (await fetch('/example')).json();
-                Object.entries(data.values).forEach(([name, value]) => {
-                    const field = document.getElementById(name);
-                    if (field) field.value = value;
-                });
-                label.textContent = `Fila cargada (valor real de C31: ${data.label})`;
-            } catch (err) {
-                label.textContent = 'No se pudo cargar el ejemplo.';
-            }
-        });
-    }
-
-    // Manejar predicción individual
-const individualForm = document.getElementById('individual-form');
-if (individualForm) {
-    individualForm.addEventListener('submit', async function(e) {
-        e.preventDefault(); // Evitar recargar la página
-        const form = e.target;
-        const formData = new FormData(form);
-        const params = new URLSearchParams();
-        
-        for (const pair of formData) {
-            params.append(pair[0], pair[1]);
+    function syncSelect(f) {
+        const v = parseFloat(f.exact.value);
+        $$('option[data-custom]', f.select).forEach(o => o.remove());
+        const match = [...f.select.options].find(o => close(parseFloat(o.value), v));
+        if (match) {
+            f.select.value = match.value;
+        } else if (!Number.isNaN(v)) {
+            const opt = new Option(`Personalizado (${v})`, v);
+            opt.dataset.custom = '1';
+            f.select.add(opt);
+            f.select.value = opt.value;
         }
+    }
 
-        const resultDiv = document.getElementById('result');
-        resultDiv.innerHTML = '<div class="loading">Procesando predicción</div>';
-        resultDiv.className = 'result-box';
+    function setValue(f, v) {
+        f.exact.value = v;
+        f.exact.classList.remove('invalid');
+        syncSelect(f);
+        refreshChanged(f);
+    }
 
+    function userChanged() {
+        if (exampleLabel !== null) {
+            exampleLabel = null;
+            showBanner('Modificaste la paciente de ejemplo: ya no se puede comparar con su resultado real.');
+        }
+    }
+
+    fields.forEach(f => {
+        f.select.addEventListener('change', () => {
+            f.exact.value = f.select.value;
+            f.exact.classList.remove('invalid');
+            refreshChanged(f);
+            userChanged();
+        });
+        f.exact.addEventListener('input', () => {
+            const v = parseFloat(f.exact.value);
+            f.exact.classList.toggle('invalid', Number.isNaN(v) || v < f.exact.min || v > f.exact.max);
+            syncSelect(f);
+            refreshChanged(f);
+            userChanged();
+        });
+    });
+
+    // Por defecto se escriben números; las variables categóricas usan lista.
+    // El interruptor "Usar niveles en todo" cambia todos los campos a lista.
+    $('#levels-mode')?.addEventListener('change', (e) => {
+        fields.forEach(f => {
+            const lista = e.target.checked || f.el.dataset.kind === 'select';
+            f.select.hidden = !lista;
+            f.exact.hidden = lista;
+        });
+    });
+
+    const banner = $('#example-banner');
+    function showBanner(html) {
+        banner.innerHTML = html;
+        banner.hidden = !html;
+    }
+
+    $('#reset-typical')?.addEventListener('click', () => {
+        fields.forEach(f => setValue(f, f.def));
+        exampleLabel = null;
+        showBanner('');
+        resetResult();
+    });
+
+    $('#load-example')?.addEventListener('click', async () => {
         try {
-            const response = await fetch('/predict', {
-                method: 'POST',
-                body: params
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                resultDiv.innerHTML = `
-                    <div class="success">
-                        <h3><i class="fas fa-check-circle"></i> Predicción Completada</h3>
-                        <p><strong>Resultado:</strong> ${data.message}</p>
-                    </div>
-                `;
-            } else {
-                const error = await response.json();
-                resultDiv.innerHTML = `
-                    <div class="error">
-                        <h3><i class="fas fa-exclamation-triangle"></i> Error</h3>
-                        <p>${error.error || 'Ha ocurrido un error al procesar la solicitud'}</p>
-                    </div>
-                `;
-            }
-        } catch (err) {
-            resultDiv.innerHTML = `
-                <div class="error">
-                    <h3><i class="fas fa-exclamation-triangle"></i> Error</h3>
-                    <p>Error al procesar la solicitud: ${err.message}</p>
-                </div>
-            `;
+            const data = await (await fetch('/example')).json();
+            fields.forEach(f => setValue(f, data.values[f.col]));
+            exampleLabel = data.label;
+            showBanner(`<i class="fas fa-shuffle"></i> Paciente real del estudio cargada. Su resultado real fue
+                <strong>${data.label === 1 ? 'con restricción del crecimiento' : 'peso fetal normal'}</strong>: predice y compara.`);
+            resetResult();
+        } catch {
+            showBanner('No se pudo cargar el ejemplo.');
         }
     });
-}
 
-    // Manejar predicción por lotes
-    const batchForm = document.getElementById('batch-prediction-form');
-    if (batchForm) {
-        batchForm.addEventListener('submit', async function(e) {
-            e.preventDefault(); // Evitar recargar la página
-            const form = e.target;
-            const formData = new FormData(form);
+    /* ---------- Predicción ---------- */
+    const resultBox = $('#result');
+    const modelName = (key) => $(`input[name="model_type"][value="${key}"]`)?.closest('label').querySelector('.mo-name').textContent.trim();
 
-            const resultDiv = document.getElementById('batch-result');
-            const graphDiv = document.getElementById('batch-graph');
-            
-            resultDiv.innerHTML = '<div class="loading">Procesando lote de datos</div>';
-            resultDiv.className = 'result-box';
-            graphDiv.innerHTML = '';
+    function setResult(cls, html) {
+        resultBox.className = `result ${cls}`;
+        resultBox.innerHTML = html;
+    }
+    function resetResult() {
+        setResult('empty', '<i class="fas fa-chart-pie"></i><p>Aquí aparecerá la predicción.</p>');
+    }
 
-            try {
-                const response = await fetch('/batch_predict', {
-                    method: 'POST',
-                    body: formData
-                });
+    function collectValues() {
+        const params = new URLSearchParams();
+        const invalid = [];
+        fields.forEach(f => {
+            const v = parseFloat(f.exact.value);
+            if (Number.isNaN(v) || v < f.exact.min || v > f.exact.max) invalid.push(f);
+            params.append(f.col, f.exact.value);
+        });
+        invalid.forEach(f => f.exact.classList.add('invalid'));
+        return { params, invalid };
+    }
 
-                if (response.ok) {
-                    const data = await response.json();
-                    
-                    // Formatear la matriz de confusión para mejor visualización
-                    let confusionMatrixHTML = '';
-                    if (data.confusion_matrix) {
-                        confusionMatrixHTML = `
-                            <div class="confusion-matrix">
-                                <h4>Matriz de Confusión:</h4>
-                                <pre>${JSON.stringify(data.confusion_matrix, null, 2)}</pre>
-                            </div>
-                        `;
-                    }
-                    
-                    const exactitudHTML = data.accuracy
-                        ? `<p><strong>Exactitud:</strong> ${data.accuracy}</p>`
-                        : `<p>Filas procesadas: ${data.rows}. Clasificadas como "Verdadero": ${data.positives}.
-                           (El archivo no incluye la columna C31, por eso no se calcula la exactitud.)</p>`;
+    async function predictWith(model, params) {
+        const body = new URLSearchParams(params);
+        body.set('model_type', model);
+        const res = await fetch('/predict', { method: 'POST', body });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Error al procesar la solicitud');
+        return data;
+    }
 
-                    resultDiv.innerHTML = `
-                        <div class="success">
-                            <h3><i class="fas fa-check-circle"></i> Análisis por Lote Completado</h3>
-                            ${confusionMatrixHTML}
-                            ${exactitudHTML}
-                        </div>
-                    `;
-                    
-                    if (data.graph) {
-                        // Mostrar el gráfico de la matriz de confusión
-                        graphDiv.innerHTML = `
-                            <h3>Visualización de Resultados</h3>
-                            <img src="data:image/png;base64,${data.graph}" alt="Matriz de Confusión">
-                        `;
-                    }
-                } else {
-                    const error = await response.json();
-                    resultDiv.innerHTML = `
-                        <div class="error">
-                            <h3><i class="fas fa-exclamation-triangle"></i> Error</h3>
-                            <p>${error.error || 'Ha ocurrido un error al procesar la solicitud'}</p>
-                        </div>
-                    `;
-                }
-            } catch (err) {
-                resultDiv.innerHTML = `
-                    <div class="error">
-                        <h3><i class="fas fa-exclamation-triangle"></i> Error</h3>
-                        <p>Error al procesar la solicitud: ${err.message}</p>
-                    </div>
-                `;
+    function checkInputs() {
+        const { params, invalid } = collectValues();
+        if (invalid.length) {
+            setResult('error', `<strong><i class="fas fa-triangle-exclamation"></i> Revisa los campos marcados</strong>
+                <p class="sub">Valores fuera de rango en: ${invalid.map(f => f.col).join(', ')}.</p>`);
+            return null;
+        }
+        return params;
+    }
+
+    function matchNote(prediction) {
+        if (exampleLabel === null) return '';
+        return prediction === exampleLabel
+            ? '<p class="sub"><i class="fas fa-circle-check"></i> Coincide con el resultado real de la paciente.</p>'
+            : '<p class="sub"><i class="fas fa-circle-xmark"></i> No coincide con el resultado real de la paciente.</p>';
+    }
+
+    $('#individual-form')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const params = checkInputs();
+        if (!params) return;
+        const model = $('input[name="model_type"]:checked').value;
+        const btn = $('#predict-btn');
+        btn.disabled = true;
+        setResult('loading', '<span class="spinner"></span> Calculando...');
+        try {
+            const data = await predictWith(model, params);
+            const pos = data.prediction === 1;
+            setResult(pos ? 'pos' : 'neg', `
+                <div class="big"><i class="fas ${pos ? 'fa-circle-exclamation' : 'fa-circle-check'}"></i> ${escapeHtml(data.message)}</div>
+                <p class="sub">Modelo: ${escapeHtml(modelName(model))}</p>${matchNote(data.prediction)}`);
+        } catch (err) {
+            setResult('error', `<strong><i class="fas fa-triangle-exclamation"></i> Error</strong><p class="sub">${escapeHtml(err.message)}</p>`);
+        } finally {
+            btn.disabled = false;
+        }
+    });
+
+    $('#compare-btn')?.addEventListener('click', async () => {
+        const params = checkInputs();
+        if (!params) return;
+        setResult('loading', '<span class="spinner"></span> Consultando los 4 modelos...');
+        const models = $$('input[name="model_type"]').map(i => i.value);
+        try {
+            const results = await Promise.all(models.map(m => predictWith(m, params)));
+            const items = models.map((m, i) => {
+                const p = results[i].prediction;
+                const ok = exampleLabel === null ? '' : (p === exampleLabel ? ' ✓' : ' ✗');
+                return `<li><span>${escapeHtml(modelName(m))}</span><span class="${p ? 'p' : 'n'}">${p ? 'Restricción' : 'Normal'}${ok}</span></li>`;
+            }).join('');
+            const real = exampleLabel === null ? '' : `<p class="sub">Resultado real: ${exampleLabel ? 'Restricción' : 'Normal'}</p>`;
+            setResult('', `<ul class="compare-list">${items}</ul>${real}`);
+        } catch (err) {
+            setResult('error', `<strong>Error</strong><p class="sub">${escapeHtml(err.message)}</p>`);
+        }
+    });
+
+    /* ---------- Lote ---------- */
+    const fileInput = $('#file');
+    const dropzone = $('.dropzone');
+    const fileInfo = $('.file-info');
+    const defaultInfo = fileInfo?.textContent;
+
+    fileInput?.addEventListener('change', () => {
+        fileInfo.textContent = fileInput.files.length ? fileInput.files[0].name : defaultInfo;
+    });
+    if (dropzone) {
+        ['dragenter', 'dragover'].forEach(ev => dropzone.addEventListener(ev, e => { e.preventDefault(); dropzone.classList.add('drag'); }));
+        ['dragleave', 'drop'].forEach(ev => dropzone.addEventListener(ev, e => { e.preventDefault(); dropzone.classList.remove('drag'); }));
+        dropzone.addEventListener('drop', e => {
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                fileInput.dispatchEvent(new Event('change'));
             }
         });
     }
 
-    // Validación de formularios
-    const allForms = document.querySelectorAll('form');
-    allForms.forEach(form => {
-        const inputs = form.querySelectorAll('input, select');
-        
-        inputs.forEach(input => {
-            input.addEventListener('invalid', function() {
-                this.classList.add('error-input');
-            });
-            
-            input.addEventListener('input', function() {
-                this.classList.remove('error-input');
-            });
-        });
+    $('#batch-prediction-form')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const box = $('#batch-result');
+        const graph = $('#batch-graph');
+        graph.innerHTML = '';
+        if (!fileInput.files.length) {
+            box.className = 'result error';
+            box.innerHTML = '<strong>Elige un archivo primero.</strong>';
+            return;
+        }
+        box.className = 'result loading';
+        box.innerHTML = '<span class="spinner"></span> Procesando el lote...';
+        try {
+            const res = await fetch('/batch_predict', { method: 'POST', body: new FormData(e.target) });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Error al procesar el archivo');
+            let html = `<div class="big">${data.rows} filas procesadas</div>
+                <p class="sub">${data.positives} clasificadas con restricción del crecimiento.</p>`;
+            if (data.accuracy) {
+                html += `<p class="sub" style="margin-top:10px"><strong>Exactitud: ${escapeHtml(data.accuracy)}</strong></p>`;
+            } else {
+                html += '<p class="sub">El archivo no incluye C31, por eso no se calcula la exactitud.</p>';
+            }
+            box.className = 'result';
+            box.innerHTML = html;
+            if (data.graph) graph.innerHTML = `<img src="data:image/png;base64,${data.graph}" alt="Matriz de confusión">`;
+        } catch (err) {
+            box.className = 'result error';
+            box.innerHTML = `<strong>Error</strong><p class="sub">${escapeHtml(err.message)}</p>`;
+        }
     });
 });

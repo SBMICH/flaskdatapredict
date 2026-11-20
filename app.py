@@ -5,20 +5,47 @@ matplotlib.use("Agg")  # Backend sin interfaz gráfica
 
 import base64
 import io
+import json
+import threading
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, Response, jsonify, render_template, request
 from sklearn.metrics import accuracy_score, confusion_matrix
 
-from modelos import FEATURES, LABEL, MODEL_NAMES, dataframe_from_values, get_predictor
+from campos import COLUMNAS, fuera_de_rango
+from modelos import FEATURES, LABEL, MODEL_NAMES, MODELS_DIR, dataframe_from_values, get_predictor
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MAX_FILAS_LOTE = 5000
+DATASET = pd.read_excel(os.path.join(BASE_DIR, "FGR_dataset_real.xlsx"))
+REALES = DATASET[DATASET["sintetica"] == 0]  # pacientes del estudio (sin las filas generadas con SMOTE)
+N_PACIENTES = 72  # pacientes del estudio original (Yi et al., Ann Med 2022)
+METRICS = json.loads((MODELS_DIR / "metrics.json").read_text(encoding="utf-8"))
+
+# Información de cada modelo para la página (las métricas salen de models/metrics.json)
+MODELOS = [
+    {"key": "svm", "name": "SVM", "full": "Máquina de vectores de soporte", "icon": "fa-vector-square",
+     "desc": "Busca la frontera que mejor separa las dos clases. Funciona bien con pocos datos."},
+    {"key": "ann", "name": "Red neuronal", "full": "Red neuronal artificial (Keras)", "icon": "fa-network-wired",
+     "desc": "Tres capas densas con regularización y dropout. Captura relaciones no lineales."},
+    {"key": "logistic", "name": "Regresión logística", "full": "Regresión logística", "icon": "fa-chart-line",
+     "desc": "Modelo lineal e interpretable. Sirve como punto de referencia."},
+    {"key": "fcm", "name": "FCM", "full": "Mapa cognitivo difuso (experimental)", "icon": "fa-project-diagram",
+     "desc": "Sus pesos no se aprendieron de los datos: rinde como el azar y se muestra solo como referencia.",
+     "experimental": True},
+]
+for m in MODELOS:
+    m["metrics"] = METRICS.get(m["key"], {})
 
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024  # 2 MB por archivo
+
+# Carga los modelos en segundo plano al arrancar para que la primera predicción no tarde.
+if os.environ.get("PRELOAD_MODELS", "1") == "1":
+    threading.Thread(target=get_predictor, daemon=True).start()
 
 
 def error(mensaje, codigo=400):
@@ -32,42 +59,56 @@ def archivo_muy_grande(_):
 
 @app.route("/")
 def home():
-    return render_template("index.html")
+    return render_template("index.html", columnas=COLUMNAS, modelos=MODELOS, metrics=METRICS,
+                           n_pacientes=N_PACIENTES, n_filas=len(DATASET),
+                           n_sinteticas=int(DATASET["sintetica"].sum()))
 
 
 @app.route("/metrics")
 def metrics():
     """Métricas de los modelos sobre el conjunto de prueba (generadas por trainers/train.py)."""
-    return jsonify(get_predictor().metrics)
+    return jsonify(METRICS)
 
 
 @app.route("/example")
 def example():
-    """Una fila al azar del dataset, para probar el formulario."""
-    fila = pd.read_excel(os.path.join(os.path.dirname(__file__), "FGR_dataset.xlsx")).sample(1).iloc[0]
-    return jsonify({"values": {c: round(float(fila[c]), 4) for c in FEATURES}, "label": int(fila[LABEL])})
+    """Una paciente real al azar del dataset, para probar el formulario."""
+    fila = REALES.sample(1).iloc[0]
+    valores = {c: (int(fila[c]) if float(fila[c]).is_integer() else float(fila[c])) for c in FEATURES}
+    return jsonify({"values": valores, "label": int(fila[LABEL])})
+
+
+@app.route("/plantilla.csv")
+def plantilla():
+    """Plantilla para la predicción por lote: columnas C1..C31 con dos filas reales de cada clase."""
+    filas = pd.concat([REALES[REALES[LABEL] == 0].head(2), REALES[REALES[LABEL] == 1].head(2)])
+    csv = filas[FEATURES + [LABEL]].to_csv(index=False)
+    return Response(csv, mimetype="text/csv",
+                    headers={"Content-Disposition": "attachment; filename=plantilla_lote.csv"})
 
 
 @app.route("/predict", methods=["POST"])
 def predict():
     model_type = request.form.get("model_type", "")
     if model_type not in MODEL_NAMES:
-        return error("Modelo no reconocido.")
+        return error("Elige un modelo válido.")
 
     faltantes = [c for c in FEATURES if not request.form.get(c, "").strip()]
     if faltantes:
         return error(f"Faltan campos: {', '.join(faltantes)}.")
     try:
-        values = [float(request.form[c]) for c in FEATURES]
+        values = {c: float(request.form[c]) for c in FEATURES}
     except ValueError:
         return error("Por favor, ingresa valores numéricos válidos en todos los campos.")
-    if not np.isfinite(values).all():
+    if not np.isfinite(list(values.values())).all():
         return error("Los valores deben ser números finitos.")
-    if max(abs(v) for v in values) > 100:
-        return error("Hay valores fuera de rango: los modelos esperan datos estandarizados (aprox. entre -5 y +6).")
+    fuera = fuera_de_rango(values)
+    if fuera:
+        return error(f"Valores fuera del rango aceptado en: {', '.join(fuera)}.")
 
-    prediction = int(get_predictor().predict(dataframe_from_values(values), model_type)[0])
-    return jsonify({"prediction": prediction, "message": "Verdadero" if prediction == 1 else "Falso"})
+    prediction = int(get_predictor().predict(dataframe_from_values(list(values.values())), model_type)[0])
+    return jsonify({"prediction": prediction,
+                    "message": "Con restricción del crecimiento" if prediction == 1 else "Peso fetal normal"})
 
 
 def leer_archivo(file):

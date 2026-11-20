@@ -10,6 +10,7 @@ os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "2")   # Menos mensajes de TensorF
 
 import json
 import pickle
+import threading
 from pathlib import Path
 
 import numpy as np
@@ -71,13 +72,15 @@ class Predictor:
 
 
 _predictor = None
+_lock = threading.Lock()
 
 
 def get_predictor():
-    """Carga los modelos la primera vez que se necesitan."""
+    """Carga los modelos la primera vez que se necesitan (una sola vez, aunque lleguen varias peticiones)."""
     global _predictor
-    if _predictor is None:
-        _predictor = Predictor()
+    with _lock:
+        if _predictor is None:
+            _predictor = Predictor()
     return _predictor
 
 

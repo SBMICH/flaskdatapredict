@@ -21,7 +21,7 @@ def client():
 
 @pytest.fixture(scope="module")
 def dataset():
-    return pd.read_excel(ROOT / "FGR_dataset.xlsx")
+    return pd.read_excel(ROOT / "FGR_dataset_real.xlsx")
 
 
 def formulario(fila, modelo):
@@ -106,8 +106,54 @@ def test_lote_sin_archivo(client):
     assert client.post("/batch_predict", data={"batch_model": "svm"}).status_code == 400
 
 
+def test_valor_fuera_de_rango_indica_el_campo(client, dataset):
+    datos = formulario(dataset.iloc[0], "svm")
+    datos["C12"] = "-5"
+    r = client.post("/predict", data=datos)
+    assert r.status_code == 400
+    assert "C12" in r.get_json()["error"]
+
+
+def test_pagina_principal_tiene_los_30_campos(client):
+    html = client.get("/").get_data(as_text=True)
+    assert all(f'id="{c}"' in html for c in FEATURES)
+
+
+def test_niveles_del_formulario_son_validos(client):
+    """Cada opción de las listas debe ser aceptada por /predict."""
+    from campos import GRUPOS
+    datos = {f["col"]: str(f["options"][-1][1]) for g in GRUPOS for f in g["fields"]}
+    datos["model_type"] = "logistic"
+    assert client.post("/predict", data=datos).status_code == 200
+
+
+def test_plantilla_csv(client):
+    r = client.get("/plantilla.csv")
+    assert r.status_code == 200
+    columnas = r.get_data(as_text=True).splitlines()[0].split(",")
+    assert columnas == FEATURES + [LABEL]
+
+
+def test_ejemplo(client):
+    cuerpo = client.get("/example").get_json()
+    assert set(cuerpo["values"]) == set(FEATURES)
+    assert cuerpo["label"] in (0, 1)
+
+
 def test_fcm_devuelve_binarios():
     matriz = np.random.default_rng(0).uniform(-1, 1, (31, 31))
     preds = predict_fcm(matriz, np.random.default_rng(1).normal(size=(5, 30)))
     assert set(preds) <= {0, 1}
     assert len(preds) == 5
+
+
+def test_conversion_coincide_con_el_articulo(dataset):
+    """Las pacientes reales reconstruidas deben reproducir los rangos publicados por Yi et al. (2022)."""
+    reales = dataset[dataset["sintetica"] == 0]
+    publicados = {"C1": (18, 44), "C2": (18.6, 37.59), "C3": (26.2, 34), "C18": (112, 226), "C27": (18.7, 33.4)}
+    for col, (minimo, maximo) in publicados.items():
+        assert abs(reales[col].min() - minimo) <= 0.5, col
+        assert abs(reales[col].max() - maximo) <= 0.5, col
+    # Motivo del parto: 6 HELLP, 23 sufrimiento fetal, 17 hipertensión no controlada (Tabla 1 del artículo)
+    conteo = reales["C20"].value_counts()
+    assert (conteo[0], conteo[1], conteo[3]) == (6, 23, 17)

@@ -16,7 +16,7 @@ import numpy as np
 import pandas as pd
 from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score, f1_score
+from sklearn.metrics import accuracy_score, balanced_accuracy_score, f1_score
 from sklearn.model_selection import cross_val_score, train_test_split
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
@@ -31,10 +31,14 @@ MODELS_DIR = ROOT / "models"
 
 
 def cargar_datos():
-    data = pd.read_excel(ROOT / "FGR_dataset.xlsx")
-    X, y = data[FEATURES], data[LABEL].astype(int)
-    # Se divide ANTES de ajustar el preprocesador para no filtrar información del conjunto de prueba.
-    return train_test_split(X, y, test_size=0.3, stratify=y, random_state=SEED)
+    """Divide SOLO las pacientes reales en entrenamiento y prueba; las filas sintéticas (SMOTE) van
+    únicamente al entrenamiento. Así las métricas se miden sobre pacientes reales."""
+    data = pd.read_excel(ROOT / "FGR_dataset_real.xlsx")
+    reales, sinteticas = data[data["sintetica"] == 0], data[data["sintetica"] == 1]
+    train, test = train_test_split(reales, test_size=0.3, stratify=reales[LABEL], random_state=SEED)
+    train = pd.concat([train, sinteticas])
+    # El preprocesador se ajusta después, solo con el entrenamiento, para no filtrar información de la prueba.
+    return train[FEATURES], test[FEATURES], train[LABEL].astype(int), test[LABEL].astype(int)
 
 
 def entrenar_ann(X_train, y_train, X_test, y_test):
@@ -65,6 +69,7 @@ def entrenar_ann(X_train, y_train, X_test, y_test):
 
 def resumen(y_true, y_pred):
     return {"accuracy": round(float(accuracy_score(y_true, y_pred)), 4),
+            "balanced_accuracy": round(float(balanced_accuracy_score(y_true, y_pred)), 4),
             "f1": round(float(f1_score(y_true, y_pred)), 4)}
 
 
@@ -81,7 +86,7 @@ def main():
     Xtr = preprocessor.fit_transform(X_train)
     Xte = preprocessor.transform(X_test)
 
-    metrics = {"n_train": len(X_train), "n_test": len(X_test),
+    metrics = {"n_train": len(X_train), "n_test": len(X_test), "n_test_positive": int(y_test.sum()),
                "baseline_accuracy": round(float(max(y_test.mean(), 1 - y_test.mean())), 4)}
 
     logistic = LogisticRegression(solver="liblinear", C=1.0, max_iter=200).fit(Xtr, y_train)

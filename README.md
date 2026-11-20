@@ -6,7 +6,7 @@ modelos y permite hacer predicciones individuales o subir un archivo `.csv`/`.xl
 
 > **Proyecto educativo. No es una herramienta médica ni debe usarse para tomar decisiones clínicas.**
 
-**Demo en vivo:** _(enlace de Render, pendiente)_ · puede tardar alrededor de un minuto en despertar si nadie la usó recientemente.
+**Demo en vivo: [flaskdatapredict.onrender.com](https://flaskdatapredict.onrender.com)** · puede tardar alrededor de un minuto en despertar si nadie la usó recientemente.
 
 ![Cargar una paciente de ejemplo, comparar los cuatro modelos y predecir](docs/img/demo.gif)
 
